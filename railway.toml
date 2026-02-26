@@ -2,9 +2,11 @@
 # Docs: https://docs.railway.com/reference/config-as-code
 #
 # Deploy structure:
-#   - api   → apps/api/Dockerfile  (NestJS + Prisma, runs migrations on start)
-#   - web   → apps/web/Dockerfile  (Angular SPA served by nginx)
+#   - api   → apps/api/Dockerfile  (this file; NestJS + Prisma)
+#   - web   → apps/web/Dockerfile  (set RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile on the web service!)
 #   - db    → Railway PostgreSQL plugin (add via dashboard)
+#
+# If the web app returns 502, set Variables on the WEB service: RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile
 #
 # Required environment variables per service:
 #

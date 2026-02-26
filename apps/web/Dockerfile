@@ -21,11 +21,11 @@ RUN pnpm --filter web build
 FROM nginx:1.27-alpine
 
 COPY --from=build /app/apps/web/dist/web/browser /usr/share/nginx/html
-COPY apps/web/nginx.conf /etc/nginx/conf.d/default.conf
 COPY apps/web/docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN chmod +x /docker-entrypoint.sh
 
-EXPOSE 80
+# Railway web service uses port 4000; entrypoint writes config with $PORT at runtime
+EXPOSE 4000
 
 ENTRYPOINT ["/docker-entrypoint.sh"]
