@@ -13,9 +13,9 @@ EOF
 echo "Runtime config written:"
 cat /usr/share/nginx/html/config.js
 
-# Railway injects PORT; update nginx to listen on it (default 80).
-PORT="${PORT:-80}"
-sed -i "s/listen 80/listen ${PORT}/" /etc/nginx/conf.d/default.conf
-sed -i "s/listen \[::\]:80/listen [::]:${PORT}/" /etc/nginx/conf.d/default.conf
-
+# Railway injects PORT for the web service (e.g. 4000); replace placeholder so nginx listens on it.
+PORT="${PORT:-4000}"
+sed "s/__PORT__/${PORT}/g" /etc/nginx/conf.d/default.conf > /tmp/default.conf
+mv /tmp/default.conf /etc/nginx/conf.d/default.conf
+echo "Nginx will listen on port ${PORT}"
 exec nginx -g 'daemon off;'
