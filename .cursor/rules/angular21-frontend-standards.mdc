@@ -1,0 +1,17 @@
+---
+description: Angular 21 standards for frontend implementation
+globs: apps/web/**/*.{ts,html,scss,css}
+alwaysApply: false
+---
+
+# Angular 21 Frontend Standards
+
+- Use standalone components, directives, and pipes by default.
+- Prefer Signals APIs (`signal`, `computed`, `effect`) for local reactive state.
+- Keep templates declarative and move branching/transformation logic to component code.
+- Keep components focused: container components orchestrate; presentational components render.
+- Use typed reactive forms for non-trivial forms; centralize validation messages.
+- Use `OnPush` change detection unless there is a justified exception.
+- Move HTTP access to services/facades; components should not build request details.
+- Use Angular Router features (guards/resolvers) for route-level concerns.
+- Add unit tests for components/services and integration tests for critical user flows.

@@ -1,0 +1,13 @@
+---
+description: Run frontend unit tests after changes and ensure generated code does not regress existing behavior
+globs: apps/web/**/*.{ts,html,scss,css}
+alwaysApply: false
+---
+
+# Frontend Tests and Consistency
+
+- **Run unit tests after frontend changes.** After editing or generating code under `apps/web`, run the test suite from the web app (e.g. `pnpm test` in `apps/web` or `pnpm --filter web test`) and fix any failures before considering the change done.
+- **Treat tests as the consistency gate.** The app must work consistently; any generated or refactored code must not break behavior that worked before. The existing unit and integration tests are the primary check for that.
+- **When generating or refactoring code:** run the full frontend test suite afterward and address failures. Do not leave failing tests or assume behavior is unchanged without running tests.
+- **When adding or changing behavior:** add or update the relevant tests so the suite continues to guard against regressions.
+- **When tests fail after a code change: fix the code, not the tests.** Do not change or relax tests to make them pass. The tests encode the intended behavior; if they fail, the application code is wrong and must be fixed to satisfy the tests.

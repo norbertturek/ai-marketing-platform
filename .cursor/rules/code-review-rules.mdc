@@ -1,0 +1,15 @@
+---
+description: Code review standards and merge gate checklist
+alwaysApply: true
+---
+
+# Code Review Rules
+
+- Prioritize correctness, security, and regression risk over style nits.
+- Mark severity clearly: blocker, major, minor, suggestion.
+- Verify behavior changes include tests or a clear rationale for missing tests.
+- Check edge cases: null/undefined, concurrency, retries, and timeouts.
+- Confirm logging/metrics coverage for new failure modes.
+- Flag hidden coupling, leaky abstractions, and breaking API changes.
+- Require actionable comments with concrete fixes when possible.
+- Ensure docs/config/env changes are included when behavior depends on them.

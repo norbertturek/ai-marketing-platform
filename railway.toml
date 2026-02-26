@@ -1,0 +1,30 @@
+# Railway project configuration
+# Docs: https://docs.railway.com/reference/config-as-code
+#
+# Deploy structure:
+#   - api   → apps/api/Dockerfile  (NestJS + Prisma, runs migrations on start)
+#   - web   → apps/web/Dockerfile  (Angular SPA served by nginx)
+#   - db    → Railway PostgreSQL plugin (add via dashboard)
+#
+# Required environment variables per service:
+#
+# [api]
+#   DATABASE_URL        — from Railway PostgreSQL plugin (set automatically)
+#   JWT_ACCESS_SECRET   — strong random string
+#   JWT_REFRESH_SECRET  — strong random string
+#   CORS_ORIGIN         — your web service public URL  (e.g. https://web-xxx.railway.app)
+#   SENTRY_DSN          — from sentry.io project settings (optional)
+#   PORT                — set automatically by Railway
+#
+# [web]
+#   API_URL             — your api service public URL  (e.g. https://api-xxx.railway.app/api)
+#   SENTRY_DSN          — same DSN as API, or a separate browser project (optional)
+
+[build]
+  dockerfilePath = "apps/api/Dockerfile"
+
+[deploy]
+  healthcheckPath = "/api"
+  healthcheckTimeout = 60
+  restartPolicyType = "on_failure"
+  restartPolicyMaxRetries = 3

@@ -1,0 +1,15 @@
+---
+description: Core coding standards for the monorepo
+alwaysApply: true
+---
+
+# Project Coding Standards
+
+- Prefer pure functions and small composable units over large imperative flows.
+- Keep imports at the top of the file; avoid inline imports.
+- Handle errors explicitly; return typed failures or throw domain-specific errors.
+- Validate external input at boundaries (HTTP, env, database, queue).
+- Do not swallow exceptions; log context and preserve the original cause.
+- Keep public APIs stable and backward compatible unless a breaking change is intentional.
+- Add or update tests for every behavior change.
+- Keep changes minimal: remove dead code and avoid speculative abstractions.

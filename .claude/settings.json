@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(cat | jq -r '.tool_input.file_path // empty'); if [[ \"$file\" == *apps/web/src/* ]]; then echo \"Running Angular unit tests for: $file\"; pnpm --filter web test; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
