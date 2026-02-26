@@ -24,7 +24,8 @@
   dockerfilePath = "apps/api/Dockerfile"
 
 [deploy]
-  healthcheckPath = "/api"
+  # Must match an existing route: Nest uses global prefix "api", health is at /api/health (GET /api returns 404)
+  healthcheckPath = "/api/health"
   healthcheckTimeout = 60
   restartPolicyType = "on_failure"
   restartPolicyMaxRetries = 3
