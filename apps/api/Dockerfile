@@ -14,7 +14,7 @@ RUN pnpm install --no-frozen-lockfile --filter api...
 COPY apps/api apps/api
 COPY packages packages
 
-RUN pnpm --filter api prisma:generate
+RUN DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy pnpm --filter api prisma:generate
 RUN pnpm --filter api build
 
 COPY apps/api/docker-entrypoint.sh /docker-entrypoint.sh
