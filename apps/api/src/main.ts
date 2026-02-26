@@ -1,8 +1,8 @@
 import './instrument';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { AppModule } from './app.module';
+import { SentrySafeFilter } from './sentry-safe.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -11,7 +11,7 @@ async function bootstrap() {
     origin: process.env.CORS_ORIGIN ?? '*',
     credentials: true,
   });
-  app.useGlobalFilters(new SentryGlobalFilter());
+  app.useGlobalFilters(new SentrySafeFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
