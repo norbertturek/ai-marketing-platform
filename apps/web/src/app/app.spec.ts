@@ -50,14 +50,11 @@ describe('App', () => {
     expect(fixture.componentInstance).toBeTruthy();
   });
 
-  it('should render header with branding and Dashboard and Playground', async () => {
+  it('should render header with branding', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    await fixture.whenStable();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('AI Marketing Platform');
-    expect(el.textContent).toContain('Dashboard');
-    expect(el.textContent).toContain('Playground');
   });
 
   describe('navbar when not authenticated', () => {
@@ -65,13 +62,15 @@ describe('App', () => {
       isAuthenticatedSignal.set(false);
     });
 
-    it('shows Sign in and Sign up and does not show Logout', () => {
+    it('shows Sign in and Sign up and does not show Logout, Dashboard or Playground', () => {
       const fixture = TestBed.createComponent(App);
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
       expect(el.textContent).toContain('Sign in');
       expect(el.textContent).toContain('Sign up');
       expect(el.textContent).not.toContain('Logout');
+      expect(el.textContent).not.toContain('Dashboard');
+      expect(el.textContent).not.toContain('Playground');
     });
 
     it('logo link points to signin', () => {
