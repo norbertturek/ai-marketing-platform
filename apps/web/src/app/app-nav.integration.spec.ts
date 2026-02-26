@@ -52,7 +52,7 @@ describe('App navbar (integration)', () => {
   });
 
   it('when not authenticated shows only Sign in and Sign up, hides Dashboard and Playground', async () => {
-    await router.navigate(['/playground']);
+    await router.navigate(['/signin']);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     await fixture.whenStable();
