@@ -1,26 +1,58 @@
 # Railway deploy (API + Web)
 
-This repo has two deployable apps: **api** (NestJS) and **web** (Angular + nginx). The root `railway.toml` is set up for the **api** service. For the **web** service you must point Railway at the web Dockerfile.
+One repo, two services. The **root** `railway.toml` is for the **API**. The **web** service must use the web Dockerfile and the **web** healthcheck path, or you get "Application failed to respond".
 
-## Why the web app returns 502
+## Why the web shows "Application failed to respond"
 
-If both services use the same build config, the **web** service will build and run the **api** image (because `railway.toml` has `dockerfilePath = "apps/api/Dockerfile"`). The API listens on Railway’s `PORT` (e.g. 8080). Your web domain targets port **4000**, so nothing is listening there → **502 Bad Gateway**.
+1. **Wrong image**  
+   If the web service uses the root config, it builds and runs the **API** image. The API listens on 8080; your web domain uses port 4000 → nothing listens on 4000 → 502 / "Application failed to respond".
 
-## Fix: set Dockerfile path for the web service
+2. **Wrong healthcheck**  
+   The root `railway.toml` has `healthcheckPath = "/api/health"`. If that is used for the **web** service, Railway calls `/api/health` on the **web** container. The web app only has `/health`, so it returns 404 → healthcheck fails → Railway reports "Application failed to respond".
 
-1. In [Railway](https://railway.app) open your project.
-2. Select the **web** service (the one with domain `ai-marketing-platform-web-production.up.railway.app`).
-3. Go to **Variables**.
-4. Add a variable:
-   - **Name:** `RAILWAY_DOCKERFILE_PATH`
-   - **Value:** `apps/web/Dockerfile`
-5. **Redeploy** the web service (e.g. trigger a new deploy from the **Deployments** tab).
+3. **Wrong root directory**  
+   If the web service has **Root Directory** = `apps/web`, the build context is only `apps/web`. The web Dockerfile expects the **monorepo root** (it copies `package.json`, `apps/web`, `packages/`). The build can fail or produce a broken image.
 
-After that, the web service will build and run the nginx image that listens on port 4000 (or whatever `PORT` Railway sets). Keep the service **Target port** at **4000** in **Settings → Public networking**.
+## Fix: web service settings
+
+Do this for the **web** service (the one with `ai-marketing-platform-web-production.up.railway.app`):
+
+### 1. Root Directory
+
+- **Settings → General → Root Directory:** leave **empty** (repo root).  
+  Do **not** set it to `apps/web`.
+
+### 2. Use the web Dockerfile
+
+- **Variables** → add:
+  - **Name:** `RAILWAY_DOCKERFILE_PATH`
+  - **Value:** `apps/web/Dockerfile`
+- Redeploy after saving.
+
+### 3. Use the web healthcheck path
+
+- **Settings → Deploy** (or **Networking** / **Health Check**, depending on UI).
+- Set **Healthcheck Path** to **`/health`** (not `/api/health`).  
+  `/api/health` is for the API only.
+
+### 4. Port
+
+- **Settings → Public networking** → **Target port:** **4000** (or leave default if it already matches).
+
+## Optional: config file for the web service
+
+If your Railway project lets you set a **config path** per service, you can point the web service to `apps/web/railway.toml`. That file sets:
+
+- `dockerfilePath = "apps/web/Dockerfile"`
+- `healthcheckPath = "/health"`
+
+You still need **Root Directory** = empty for the web service so the build context is the repo root.
 
 ## Summary
 
-| Service | Variable (optional) | Dockerfile | Port |
-|---------|---------------------|------------|------|
-| **api** | (uses root `railway.toml`) | `apps/api/Dockerfile` | 8080 |
-| **web** | `RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile` | `apps/web/Dockerfile` | 4000 |
+| Service | Root Directory | Variable | Healthcheck Path | Port |
+|--------|-----------------|----------|------------------|------|
+| **api** | (default) | — | `/api/health` (root toml) | 8080 |
+| **web** | **empty** | `RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile` | **`/health`** | 4000 |
+
+After changing these, **redeploy** the web service.

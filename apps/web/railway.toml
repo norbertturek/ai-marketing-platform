@@ -1,3 +1,12 @@
+# Web service config for Railway (use this when the service uses repo root as Root Directory).
+# To use: in Railway dashboard, set this service's "Config path" to "apps/web/railway.toml"
+# if your project supports per-service config. Otherwise set Variables and Settings below.
+#
+# Required for web to work:
+# - Root Directory: leave EMPTY (repo root) — the Dockerfile needs monorepo context.
+# - Variable: RAILWAY_DOCKERFILE_PATH = apps/web/Dockerfile
+# - Settings → Deploy → Healthcheck Path: /health  (root railway.toml uses /api/health for the API!)
+
 [build]
   dockerfilePath = "apps/web/Dockerfile"
 

@@ -6,7 +6,7 @@
 #   - web   → apps/web/Dockerfile  (set RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile on the web service!)
 #   - db    → Railway PostgreSQL plugin (add via dashboard)
 #
-# If the web app returns 502, set Variables on the WEB service: RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile
+# Web service: set RAILWAY_DOCKERFILE_PATH=apps/web/Dockerfile and Healthcheck Path = /health (see docs/railway-deploy.md)
 #
 # Required environment variables per service:
 #
