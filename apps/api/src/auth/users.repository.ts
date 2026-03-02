@@ -14,7 +14,10 @@ export class UsersRepository {
     return this.prisma.user.findUnique({ where: { id } });
   }
 
-  createWithPassword(data: { email: string; passwordHash: string }): Promise<User> {
+  createWithPassword(data: {
+    email: string;
+    passwordHash: string;
+  }): Promise<User> {
     return this.prisma.user.create({
       data: {
         email: data.email,
@@ -23,7 +26,10 @@ export class UsersRepository {
     });
   }
 
-  updateRefreshTokenHash(userId: string, refreshTokenHash: string): Promise<User> {
+  updateRefreshTokenHash(
+    userId: string,
+    refreshTokenHash: string,
+  ): Promise<User> {
     return this.prisma.user.update({
       where: { id: userId },
       data: { refreshTokenHash },
