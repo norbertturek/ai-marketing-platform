@@ -120,4 +120,91 @@ describe('AppController (e2e)', () => {
       .send({ refreshToken: refreshBody.tokens.refreshToken })
       .expect(204);
   });
+
+  it('creates and reads projects for authenticated user', async () => {
+    const ownerEmail = `projects-owner-${Date.now()}@example.com`;
+    const otherEmail = `projects-other-${Date.now()}@example.com`;
+    const password = 'StrongPass123';
+
+    const ownerRegisterResponse = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({ email: ownerEmail, password })
+      .expect(201);
+    const ownerAccessToken = (
+      ownerRegisterResponse.body as {
+        tokens: { accessToken: string };
+      }
+    ).tokens.accessToken;
+
+    const otherRegisterResponse = await request(app.getHttpServer())
+      .post('/api/auth/register')
+      .send({ email: otherEmail, password })
+      .expect(201);
+    const otherAccessToken = (
+      otherRegisterResponse.body as {
+        tokens: { accessToken: string };
+      }
+    ).tokens.accessToken;
+
+    const createResponse = await request(app.getHttpServer())
+      .post('/api/projects')
+      .set('Authorization', `Bearer ${ownerAccessToken}`)
+      .send({
+        name: 'My First Project',
+        description: 'Project description',
+        context: 'Use a clear and educational tone',
+      })
+      .expect(201);
+
+    const createdProject = createResponse.body as {
+      id: string;
+      name: string;
+      description: string;
+      context: string | null;
+      postsCount: number;
+      createdAt: string;
+      updatedAt: string;
+    };
+
+    expect(createdProject).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        name: 'My First Project',
+        description: 'Project description',
+        context: 'Use a clear and educational tone',
+        postsCount: 0,
+      }),
+    );
+
+    await request(app.getHttpServer())
+      .get('/api/projects')
+      .set('Authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((res: { body: unknown }) => {
+        const body = res.body as unknown[];
+        expect(Array.isArray(body)).toBe(true);
+        expect(body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: createdProject.id,
+              name: 'My First Project',
+            }),
+          ]),
+        );
+      });
+
+    await request(app.getHttpServer())
+      .get(`/api/projects/${createdProject.id}`)
+      .set('Authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((res: { body: unknown }) => {
+        const body = res.body as Record<string, unknown>;
+        expect(body.id).toBe(createdProject.id);
+      });
+
+    await request(app.getHttpServer())
+      .get(`/api/projects/${createdProject.id}`)
+      .set('Authorization', `Bearer ${otherAccessToken}`)
+      .expect(404);
+  });
 });
