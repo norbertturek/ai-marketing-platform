@@ -1,0 +1,15 @@
+---
+paths:
+  - "apps/api/**/*.ts"
+---
+
+# NestJS Backend Standards
+
+- Keep controllers thin; delegate business logic to providers/services.
+- Define DTOs for input/output and validate with class-validator/class-transformer.
+- Keep module boundaries explicit and dependency direction clear.
+- Use repository/service layers for data access; avoid Prisma calls scattered across code.
+- Handle domain and infrastructure errors distinctly; map to proper HTTP exceptions.
+- Keep async flows cancellation-safe and timeout-aware for external calls.
+- Centralize cross-cutting concerns in guards/interceptors/filters.
+- Add unit tests for services and e2e tests for endpoint contracts.
