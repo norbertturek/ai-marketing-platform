@@ -200,6 +200,73 @@ submit(): void {
 - `form.markAllAsTouched()` on invalid submit
 - Map API errors to user-friendly messages
 
+## UI Styleguide (Auth & Layout)
+
+The canonical UI rules live in `docs/ui/styleguide.md`. Follow them whenever you generate Angular templates.
+
+### Auth pages
+
+- Use the **full-screen dark** layout described in the styleguide:
+  - `class="dark min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4"`
+  - Top-left “back to app” link with subtle icon and `text-zinc-500 hover:text-white`
+  - Centered container: `w-full max-w-md px-4`
+- Reuse the signin/signup structure from:
+  - `apps/web/src/app/pages/signin.page.ts`
+  - `apps/web/src/app/pages/signup.page.ts`
+
+Example snippet for an auth-like form:
+
+```typescript
+@Component({
+  selector: 'app-auth-example-page',
+  imports: [ReactiveFormsModule, RouterLink, ...HlmButtonImports],
+  template: `
+    <section class="dark min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4">
+      <a
+        routerLink="/"
+        class="absolute top-4 left-4 md:top-6 md:left-6 text-xs md:text-sm text-zinc-500 hover:text-white transition-colors flex items-center gap-2"
+      >
+        <span aria-hidden="true" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-[10px]">
+          ←
+        </span>
+        <span class="hidden sm:inline">Back to app</span>
+      </a>
+
+      <div class="w-full max-w-md px-4">
+        <div class="text-center mb-6 md:mb-8">
+          <div class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-900 shadow-sm mb-4 md:mb-6" aria-hidden="true">
+            <span class="text-sm font-semibold tracking-tight">AI</span>
+          </div>
+          <h1 class="text-xl md:text-2xl font-medium text-white mb-2">Example auth</h1>
+          <p class="text-xs md:text-sm text-zinc-500">Short supporting copy.</p>
+        </div>
+
+        <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+          <!-- fields -->
+          <button
+            hlmBtn
+            class="w-full h-11 bg-white text-black hover:bg-zinc-200 text-sm"
+            type="submit"
+            [disabled]="isSubmitting()"
+          >
+            Continue
+          </button>
+        </form>
+      </div>
+    </section>
+  `,
+})
+export class AuthExamplePage { /* ... */ }
+```
+
+### General pages
+
+- Prefer semantic Tailwind tokens wired via `styles.scss`:
+  - `bg-background text-foreground` for main surfaces
+  - `bg-card text-card-foreground border-border` for cards
+  - `text-muted-foreground` for secondary text
+- Keep vertical rhythm using `space-y-4` / `space-y-6` and use the card patterns from the styleguide.
+
 ## Route Pattern
 
 ```typescript

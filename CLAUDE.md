@@ -105,6 +105,19 @@ Before considering any task complete:
 - Suggest improvements proactively but execute current request first
 - Provide rationale for non-obvious decisions
 
+## UI and Design
+
+- Treat `docs/ui/styleguide.md` as the **canonical UI reference** for both:
+  - Angular frontend (`apps/web`)
+  - React bundle (`AI Marketing Platform/`)
+- When generating or modifying UI:
+  - Reuse the documented **auth full-screen layout**, card patterns, and form styles instead of inventing new ones.
+  - For auth/onboarding flows, copy the structure from:
+    - `apps/web/src/app/pages/signin.page.ts` and `signup.page.ts`
+    - `AI Marketing Platform/src/app/pages/LoginPage.tsx` and `RegisterPage.tsx`
+  - Prefer semantic Tailwind tokens wired via `styles.scss` for general pages, and reserve raw dark `zinc-*`/`#0a0a0a` treatments for full-bleed experiences like auth.
+- Keep validation messages, error handling, and feedback (inline errors, toasts) consistent with the patterns described in the styleguide.
+
 ## Hooks
 
 After every edit to `apps/web/src/`, the full Angular unit test suite runs automatically.
