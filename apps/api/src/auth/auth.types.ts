@@ -15,3 +15,8 @@ export type AuthResponse = {
   };
   tokens: AuthTokens;
 };
+
+export type AuthenticatedUser = {
+  userId: string;
+  email: string;
+};
