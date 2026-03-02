@@ -62,13 +62,19 @@ export class AuthService {
     }
   }
 
-  async signIn(params: { email: string; password: string }): Promise<AuthResponse> {
+  async signIn(params: {
+    email: string;
+    password: string;
+  }): Promise<AuthResponse> {
     const user = await this.usersRepository.findByEmail(params.email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(params.password, user.passwordHash);
+    const isPasswordValid = await bcrypt.compare(
+      params.password,
+      user.passwordHash,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -130,7 +136,10 @@ export class AuthService {
     await this.usersRepository.clearRefreshTokenHash(user.id);
   }
 
-  private async issueTokens(userId: string, email: string): Promise<AuthTokens> {
+  private async issueTokens(
+    userId: string,
+    email: string,
+  ): Promise<AuthTokens> {
     const payload: JwtPayload = { sub: userId, email };
 
     const [accessToken, refreshToken] = await Promise.all([

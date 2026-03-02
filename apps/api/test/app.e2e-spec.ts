@@ -104,7 +104,9 @@ describe('AppController (e2e)', () => {
       .expect(200);
 
     expect(refreshResponse.body.tokens.accessToken).toEqual(expect.any(String));
-    expect(refreshResponse.body.tokens.refreshToken).toEqual(expect.any(String));
+    expect(refreshResponse.body.tokens.refreshToken).toEqual(
+      expect.any(String),
+    );
 
     await request(app.getHttpServer())
       .post('/api/auth/signout')

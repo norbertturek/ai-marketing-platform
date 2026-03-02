@@ -8,7 +8,6 @@ PORT="${PORT:-4000}"
 cat > /usr/share/nginx/html/config.js <<ENVEOF
 window.__env = {
   apiUrl: '${API_URL:-http://localhost:3000/api}',
-  sentryDsn: '${SENTRY_DSN:-}',
 };
 ENVEOF
 

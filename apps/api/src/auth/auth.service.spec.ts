@@ -76,7 +76,10 @@ describe('AuthService', () => {
     });
 
     await expect(
-      service.register({ email: 'taken@example.com', password: 'StrongPass123' }),
+      service.register({
+        email: 'taken@example.com',
+        password: 'StrongPass123',
+      }),
     ).rejects.toBeInstanceOf(ConflictException);
   });
 
@@ -84,7 +87,10 @@ describe('AuthService', () => {
     usersRepository.findByEmail.mockResolvedValue(null);
 
     await expect(
-      service.signIn({ email: 'missing@example.com', password: 'StrongPass123' }),
+      service.signIn({
+        email: 'missing@example.com',
+        password: 'StrongPass123',
+      }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 

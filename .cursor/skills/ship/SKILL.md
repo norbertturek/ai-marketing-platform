@@ -49,9 +49,7 @@ Before anything, validate the changes are ready to ship:
    - **Never stage** `.env`, credentials, or secrets files
 4. Commit with the drafted message:
    ```
-   git commit -m "feat(scope): description
-
-   Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>"
+   git commit -m "feat(scope): description"
    ```
 5. Push the branch: `git push -u origin <branch-name>`
 
@@ -70,13 +68,11 @@ gh pr create --title "feat(scope): description" --body "## Summary
 - [ ] Unit tests pass
 - [ ] Type checking passes
 - [ ] Linting passes
-- [ ] Manual verification (if applicable)
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)"
+- [ ] Manual verification (if applicable)"
 ```
 
 **PR rules:**
-- Title matches the commit message (without Co-Authored-By)
+- Title matches the commit message
 - Title under 70 characters
 - Body includes Summary, Changes, and Test plan sections
 - Always include the test plan checklist
@@ -112,4 +108,5 @@ After completion, report:
 - **Always squash merge** — keeps main history clean
 - **Always delete the feature branch** after merge
 - If the user says "don't merge" or "just PR", stop after Step 4
+- **Never add AI/tool attribution** — no "Co-Authored-By", "Generated with", "Made with Cursor/Claude/Copilot", or any similar credit lines in commits, PR bodies, or code. Treat all output as if the user wrote it.
 - If unsure about anything, ask the user before proceeding
