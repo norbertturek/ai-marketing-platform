@@ -36,3 +36,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
+
+# React UI reference (not part of shipped app)
+AI Marketing Platform/

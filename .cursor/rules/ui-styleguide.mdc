@@ -1,0 +1,49 @@
+# UI Styleguide Rules
+
+## Canonical source
+
+- The **single source of truth** for UI is `docs/ui/styleguide.md`.
+- All assistants (Cursor, Claude) and contributors must follow that file for:
+  - Colors and dark/light treatment
+  - Layout and card patterns
+  - Forms (inputs, labels, errors, buttons)
+  - Feedback (inline errors, toasts)
+
+## Auth and onboarding flows
+
+- Use the **full-screen dark auth layout**:
+  - Outer container: `dark min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4`
+  - Back link: top-left, subtle, `text-zinc-500 hover:text-white`
+  - Centered card: `w-full max-w-md px-4`
+- Reuse the structure from:
+  - Angular: `signin.page.ts`, `signup.page.ts`
+  - React: `LoginPage.tsx`, `RegisterPage.tsx`
+- Only change **content** (copy, fields) unless the styleguide itself is being updated.
+
+## General layout & components
+
+- Prefer semantic tokens wired via `styles.scss`:
+  - `bg-background text-foreground` for main surfaces
+  - `bg-card text-card-foreground border-border` for cards
+  - `text-muted-foreground` or `text-zinc-500` for secondary text
+- Keep a consistent vertical rhythm using `space-y-4` / `space-y-6`.
+- Use existing primitives:
+  - Angular: spartan-ng helm components (`@spartan-ng/helm/*`, `hlmBtn`)
+  - React: `AI Marketing Platform/src/app/components/ui/*`
+
+## Forms and validation
+
+- Labels: `text-xs text-zinc-400 mb-2 block` above controls.
+- Auth inputs: `h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white placeholder:text-zinc-600`.
+- Errors:
+  - Field errors: `mt-1 text-xs text-red-400` (or `text-destructive` on light).
+  - Form-level error: short message above primary button.
+- Buttons on dark auth:
+  - Primary: `w-full h-11 bg-white text-black hover:bg-zinc-200 text-sm`, disabled while submitting.
+
+## When generating new UI
+
+- **Always** consult `docs/ui/styleguide.md` before adding or refactoring UI.
+- Do not introduce new ad-hoc colors, radii, or layout patterns without updating the styleguide.
+- For small variants, start from existing auth/cards/forms and tweak minimally.
+

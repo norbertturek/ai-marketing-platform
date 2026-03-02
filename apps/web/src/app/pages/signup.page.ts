@@ -11,52 +11,84 @@ import { AuthStoreService } from '../core/auth/auth-store.service';
   selector: 'app-signup-page',
   imports: [NgIf, RouterLink, ReactiveFormsModule, ...HlmButtonImports],
   template: `
-    <section class="mx-auto w-full max-w-md rounded-xl border bg-background p-6 shadow-sm">
-      <div class="mb-6 space-y-1">
-        <h1 class="text-2xl font-semibold tracking-tight">Create account</h1>
-        <p class="text-sm text-muted-foreground">
-          Start your workspace and set up your first marketing automation flow.
+    <section class="dark min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center p-4">
+      <!-- Back to app link -->
+      <a
+        routerLink="/"
+        class="absolute top-4 left-4 md:top-6 md:left-6 text-xs md:text-sm text-zinc-500 hover:text-white transition-colors flex items-center gap-2"
+      >
+        <span aria-hidden="true" class="inline-flex h-5 w-5 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 text-[10px]">
+          ←
+        </span>
+        <span class="hidden sm:inline">Back to app</span>
+      </a>
+
+      <div class="w-full max-w-md px-4">
+        <!-- Logo / header -->
+        <div class="text-center mb-6 md:mb-8">
+          <div
+            class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-900 shadow-sm mb-4 md:mb-6"
+            aria-hidden="true"
+          >
+            <span class="text-sm font-semibold tracking-tight">AI</span>
+          </div>
+          <h1 class="text-xl md:text-2xl font-medium text-white mb-2">Create account</h1>
+          <p class="text-xs md:text-sm text-zinc-500">Start your workspace for AI-powered marketing.</p>
+        </div>
+
+        <!-- Bonus info -->
+        <div class="mb-4 md:mb-6 rounded-lg border border-zinc-800 bg-zinc-900 p-3 md:p-4">
+          <p class="text-xs md:text-sm text-white">
+            🎁 Welcome bonus:
+            <span class="font-medium">500 free AI credits</span>
+            to experiment with campaigns.
+          </p>
+        </div>
+
+        <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
+          <div>
+            <label for="signup-email" class="mb-2 block text-xs text-zinc-400">Email</label>
+            <input
+              id="signup-email"
+              type="email"
+              placeholder="you@example.com"
+              class="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white shadow-xs outline-none placeholder:text-zinc-600 focus-visible:border-zinc-500 focus-visible:ring-[3px] focus-visible:ring-zinc-500/40"
+              formControlName="email"
+            />
+            <p class="mt-1 text-xs text-red-400" *ngIf="emailError">{{ emailError }}</p>
+          </div>
+
+          <div>
+            <label for="signup-password" class="mb-2 block text-xs text-zinc-400">Password</label>
+            <input
+              id="signup-password"
+              type="password"
+              placeholder="Minimum 8 characters"
+              class="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white shadow-xs outline-none placeholder:text-zinc-600 focus-visible:border-zinc-500 focus-visible:ring-[3px] focus-visible:ring-zinc-500/40"
+              formControlName="password"
+            />
+            <p class="mt-1 text-xs text-red-400" *ngIf="passwordError">{{ passwordError }}</p>
+          </div>
+
+          <p class="text-sm text-red-400" *ngIf="errorMessage()">{{ errorMessage() }}</p>
+
+          <button
+            hlmBtn
+            class="mt-2 h-11 w-full bg-white text-black hover:bg-zinc-200 text-sm"
+            type="submit"
+            [disabled]="isSubmitting()"
+          >
+            {{ isSubmitting() ? 'Creating account...' : 'Create account' }}
+          </button>
+        </form>
+
+        <p class="mt-6 text-center text-sm text-zinc-500">
+          Already registered?
+          <a routerLink="/signin" class="font-medium text-white hover:underline">
+            Sign in
+          </a>
         </p>
       </div>
-
-      <form class="space-y-4" [formGroup]="form" (ngSubmit)="submit()">
-        <div class="space-y-2">
-          <label for="signup-email" class="text-sm font-medium">Email</label>
-          <input
-            id="signup-email"
-            type="email"
-            placeholder="you@example.com"
-            class="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            formControlName="email"
-          />
-          <p class="text-xs text-destructive" *ngIf="emailError">{{ emailError }}</p>
-        </div>
-
-        <div class="space-y-2">
-          <label for="signup-password" class="text-sm font-medium">Password</label>
-          <input
-            id="signup-password"
-            type="password"
-            placeholder="Minimum 8 characters"
-            class="flex h-9 w-full rounded-md border bg-transparent px-3 py-1 text-sm shadow-xs outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
-            formControlName="password"
-          />
-          <p class="text-xs text-destructive" *ngIf="passwordError">{{ passwordError }}</p>
-        </div>
-
-        <p class="text-sm text-destructive" *ngIf="errorMessage()">{{ errorMessage() }}</p>
-
-        <button hlmBtn class="w-full" type="submit" [disabled]="isSubmitting()">
-          {{ isSubmitting() ? 'Creating account...' : 'Create account' }}
-        </button>
-      </form>
-
-      <p class="mt-6 text-center text-sm text-muted-foreground">
-        Already registered?
-        <a routerLink="/signin" class="font-medium text-foreground underline underline-offset-4">
-          Sign in
-        </a>
-      </p>
     </section>
   `,
 })
