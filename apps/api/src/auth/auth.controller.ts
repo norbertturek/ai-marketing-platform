@@ -5,11 +5,12 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  Req,
   UseGuards,
 } from '@nestjs/common';
-import type { AuthResponse } from './auth.types';
+import type { Request } from 'express';
+import { AuthResponse } from './auth.types';
 import { AuthService } from './auth.service';
-import { CurrentUser } from './current-user.decorator';
 import { RefreshDto } from './dto/refresh.dto';
 import { RegisterDto } from './dto/register.dto';
 import { SignInDto } from './dto/signin.dto';
@@ -44,10 +45,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JwtAuthGuard)
-  me(@CurrentUser() user: { userId: string; email: string }): {
-    userId: string;
-    email: string;
-  } {
-    return user;
+  me(@Req() request: Request): unknown {
+    return request.user;
   }
 }

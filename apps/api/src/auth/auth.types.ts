@@ -1,10 +1,5 @@
 export type JwtPayload = {
-  sub: string;
-  email: string;
-};
-
-export type AuthenticatedUser = {
-  userId: string;
+  sub: string; // todo what is this?
   email: string;
 };
 
