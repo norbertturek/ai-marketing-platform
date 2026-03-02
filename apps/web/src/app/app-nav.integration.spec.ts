@@ -51,7 +51,7 @@ describe('App navbar (integration)', () => {
     );
   });
 
-  it('when not authenticated shows only Sign in and Sign up, hides Dashboard and Playground', async () => {
+  it('when not authenticated shows only Sign in and Sign up, hides app links', async () => {
     await router.navigate(['/signin']);
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
@@ -63,9 +63,10 @@ describe('App navbar (integration)', () => {
     expect(el.textContent).not.toContain('Logout');
     expect(el.textContent).not.toContain('Dashboard');
     expect(el.textContent).not.toContain('Playground');
+    expect(el.textContent).not.toContain('Projects');
   });
 
-  it('when authenticated shows Dashboard, Playground and Logout and hides Sign in/Sign up', async () => {
+  it('when authenticated shows app links and Logout and hides Sign in/Sign up', async () => {
     isAuthenticatedSignal.set(true);
     await router.navigate(['/playground']);
     const fixture = TestBed.createComponent(App);
@@ -75,6 +76,7 @@ describe('App navbar (integration)', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toContain('Dashboard');
     expect(el.textContent).toContain('Playground');
+    expect(el.textContent).toContain('Projects');
     expect(el.textContent).toContain('Logout');
     expect(el.textContent).not.toContain('Sign in');
     expect(el.textContent).not.toContain('Sign up');

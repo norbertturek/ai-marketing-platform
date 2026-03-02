@@ -29,4 +29,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/dashboard.page').then((m) => m.DashboardPage),
   },
+  {
+    path: 'projects',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/projects.page').then((m) => m.ProjectsPage),
+  },
 ];
