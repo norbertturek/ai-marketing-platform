@@ -1,12 +1,12 @@
 ---
 name: ship
-description: Commit, push, create a pull request, and merge — full shipping workflow in one command. Use when the user is done with a feature and wants to ship it to main.
+description: Commit, push, and create a PR for code review. Stops after PR; merge only after user approves. Use when the user wants to ship a feature and do a review before merging.
 argument-hint: "[optional commit message or feature description]"
 ---
 
 # Ship
 
-Ship the current changes to main through a proper PR workflow: commit → branch → push → PR → merge.
+Ship the current changes via: commit → branch → push → **PR for code review**. Do **not** merge automatically. Merge only after the user explicitly approves.
 
 ## Workflow
 
@@ -17,12 +17,12 @@ Before anything, validate the changes are ready to ship:
 1. Run `git status` to see all changed files.
 2. Run `git diff --stat` to understand the scope.
 3. Run tests for affected areas:
-   - If `apps/web/` files changed: `pnpm --filter web test -- --run 2>&1 | tail -30`
+   - If `apps/web/` files changed: `pnpm --filter web test 2>&1 | tail -40`
    - If `apps/api/` files changed: `pnpm --filter api test -- --run 2>&1 | tail -30`
 4. Run `pnpm check-types` to verify TypeScript.
-5. Run `pnpm lint` to verify linting.
+5. Run `pnpm lint` to verify linting (note: if lint fails only in unchanged areas, say so and continue).
 
-**If any check fails — STOP. Fix the issues first. Do not ship broken code.**
+**If tests or typecheck fail — STOP. Fix the issues first. Do not ship broken code.**
 
 ### Step 2: Analyze changes and draft commit message
 
@@ -77,26 +77,42 @@ gh pr create --title "feat(scope): description" --body "## Summary
 - Body includes Summary, Changes, and Test plan sections
 - Always include the test plan checklist
 
-### Step 5: Merge the pull request
+### Step 4b: Stop and ask for approval
 
-1. Wait for PR creation to complete.
-2. Merge using: `gh pr merge --squash --delete-branch`
-   - **Squash merge** to keep main history clean
-   - **Delete branch** to clean up after merge
-3. Switch back to main: `git checkout main`
-4. Pull latest: `git pull origin main`
-5. Report the merged PR URL to the user.
+**Do not merge yet.** Report the PR and ask the user to review:
 
-## Output
+1. Output the **PR URL** clearly so the user can open it for code review.
+2. Say: **"Code review ready. When you approve, reply with 'approve' or 'yes' to merge this PR to main."**
+3. Stop. Do not run merge unless the user explicitly approves in a follow-up message.
 
-After completion, report:
+### Step 5: Merge (only after user approval)
+
+Run this **only** when the user has said they approve (e.g. "approve", "yes", "merge it", "looks good"):
+
+1. Merge using: `gh pr merge <PR_NUMBER> --squash --delete-branch`
+   - Or if you have the branch name: `gh pr merge --squash --delete-branch` (from the branch) or `gh pr merge <branch> --squash --delete-branch`
+2. Switch back to main: `git checkout main`
+3. Pull latest: `git pull origin main`
+4. Report: "Merged to main. Branch deleted."
+
+**If the user only said "ship" and did not yet say they approve, do not run Step 5.**
+
+## Output after Step 4 (default)
+
 ```
 ✓ Tests passed
 ✓ Branch: feat/short-description
 ✓ Commit: feat(scope): description
 ✓ PR: #123 — https://github.com/user/repo/pull/123
+
+Code review ready. When you approve, reply with **approve** or **yes** to merge this PR to main.
+```
+
+## Output after Step 5 (after approval)
+
+```
 ✓ Merged to main
-✓ Branch cleaned up
+✓ Branch deleted
 ```
 
 ## Safety Rules
@@ -104,9 +120,8 @@ After completion, report:
 - **Never force push** (`--force` or `-f`)
 - **Never commit secrets** (`.env`, credentials, API keys)
 - **Never skip tests** — if tests fail, stop and fix
-- **Never merge with failing checks** — wait for CI if configured
-- **Always squash merge** — keeps main history clean
+- **Never merge without explicit user approval** — ship stops at PR; merge only when user says they approve
+- **Always squash merge** when merging — keeps main history clean
 - **Always delete the feature branch** after merge
-- If the user says "don't merge" or "just PR", stop after Step 4
 - **Never add AI/tool attribution** — no "Co-Authored-By", "Generated with", "Made with Cursor/Claude/Copilot", or any similar credit lines in commits, PR bodies, or code. Treat all output as if the user wrote it.
 - If unsure about anything, ask the user before proceeding
