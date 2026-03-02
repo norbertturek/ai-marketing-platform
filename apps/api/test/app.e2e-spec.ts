@@ -33,7 +33,8 @@ describe('AppController (e2e)', () => {
     return request(app.getHttpServer())
       .get('/api/hello')
       .expect(200)
-      .expect(({ body }) => {
+      .expect((res: { body: unknown }) => {
+        const body = res.body as Record<string, unknown>;
         expect(body).toEqual(
           expect.objectContaining({
             message: 'Backend is ready for frontend',
@@ -50,8 +51,8 @@ describe('AppController (e2e)', () => {
       .set('Origin', 'http://localhost:4200')
       .set('Access-Control-Request-Method', 'GET')
       .expect(204)
-      .expect(({ headers }) => {
-        expect(headers['access-control-allow-origin']).toBeDefined();
+      .expect((res: { headers: Record<string, unknown> }) => {
+        expect(res.headers['access-control-allow-origin']).toBeDefined();
       });
   });
 
@@ -64,7 +65,8 @@ describe('AppController (e2e)', () => {
       .send({ email, password })
       .expect(201);
 
-    expect(registerResponse.body).toEqual(
+    const registerBody = registerResponse.body as Record<string, unknown>;
+    expect(registerBody).toEqual(
       expect.objectContaining({
         user: expect.objectContaining({
           email,
@@ -82,14 +84,18 @@ describe('AppController (e2e)', () => {
       .send({ email, password })
       .expect(200);
 
-    const accessToken: string = signInResponse.body.tokens.accessToken;
-    const refreshToken: string = signInResponse.body.tokens.refreshToken;
+    const signInBody = signInResponse.body as {
+      tokens: { accessToken: string; refreshToken: string };
+    };
+    const accessToken = signInBody.tokens.accessToken;
+    const refreshToken = signInBody.tokens.refreshToken;
 
     await request(app.getHttpServer())
       .get('/api/auth/me')
       .set('Authorization', `Bearer ${accessToken}`)
       .expect(200)
-      .expect(({ body }) => {
+      .expect((res: { body: unknown }) => {
+        const body = res.body as Record<string, unknown>;
         expect(body).toEqual(
           expect.objectContaining({
             userId: expect.any(String),
@@ -103,14 +109,15 @@ describe('AppController (e2e)', () => {
       .send({ refreshToken })
       .expect(200);
 
-    expect(refreshResponse.body.tokens.accessToken).toEqual(expect.any(String));
-    expect(refreshResponse.body.tokens.refreshToken).toEqual(
-      expect.any(String),
-    );
+    const refreshBody = refreshResponse.body as {
+      tokens: { accessToken: string; refreshToken: string };
+    };
+    expect(refreshBody.tokens.accessToken).toEqual(expect.any(String));
+    expect(refreshBody.tokens.refreshToken).toEqual(expect.any(String));
 
     await request(app.getHttpServer())
       .post('/api/auth/signout')
-      .send({ refreshToken: refreshResponse.body.tokens.refreshToken })
+      .send({ refreshToken: refreshBody.tokens.refreshToken })
       .expect(204);
   });
 });
