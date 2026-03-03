@@ -4,6 +4,7 @@ import type { ProjectWithCount } from './projects.repository';
 import { ProjectsRepository } from './projects.repository';
 import { PostsRepository } from './posts.repository';
 import { PostsService } from './posts.service';
+import { R2Service } from '../storage/r2.service';
 
 const makeMockProject = (): ProjectWithCount =>
   ({
@@ -20,6 +21,11 @@ const makeMockProject = (): ProjectWithCount =>
 const makePost = () => ({
   id: 'post_1',
   projectId: 'proj_1',
+  content: null,
+  imageUrls: null,
+  videoUrls: null,
+  platform: null,
+  status: null,
   createdAt: new Date('2026-03-02T12:00:00.000Z'),
   updatedAt: new Date('2026-03-02T12:00:00.000Z'),
 });
@@ -38,12 +44,21 @@ describe('PostsService', () => {
           useValue: {
             findAllByProjectId: jest.fn(),
             create: jest.fn(),
+            findByIdForUser: jest.fn(),
+            update: jest.fn(),
           },
         },
         {
           provide: ProjectsRepository,
           useValue: {
             findByIdForUser: jest.fn(),
+          },
+        },
+        {
+          provide: R2Service,
+          useValue: {
+            upload: jest.fn().mockResolvedValue(null),
+            uploadFromUrl: jest.fn((url: string) => Promise.resolve(url)),
           },
         },
       ],
@@ -67,6 +82,11 @@ describe('PostsService', () => {
     expect(result[0]).toEqual({
       id: 'post_1',
       projectId: 'proj_1',
+      content: null,
+      imageUrls: [],
+      videoUrls: [],
+      platform: null,
+      status: null,
       createdAt: '2026-03-02T12:00:00.000Z',
       updatedAt: '2026-03-02T12:00:00.000Z',
     });
@@ -100,5 +120,42 @@ describe('PostsService', () => {
       NotFoundException,
     );
     expect(postsRepo.create).not.toHaveBeenCalled();
+  });
+
+  it('finds post by id', async () => {
+    projectsRepo.findByIdForUser.mockResolvedValue(makeMockProject());
+    const post = makePost();
+    postsRepo.findByIdForUser.mockResolvedValue(post);
+
+    const result = await service.findById('proj_1', 'post_1', 'u1');
+
+    expect(projectsRepo.findByIdForUser).toHaveBeenCalledWith('proj_1', 'u1');
+    expect(postsRepo.findByIdForUser).toHaveBeenCalledWith(
+      'post_1',
+      'proj_1',
+      'u1',
+    );
+    expect(result.id).toBe('post_1');
+    expect(result.imageUrls).toEqual([]);
+  });
+
+  it('updates post', async () => {
+    projectsRepo.findByIdForUser.mockResolvedValue(makeMockProject());
+    postsRepo.findByIdForUser.mockResolvedValue(makePost());
+    const updated = {
+      ...makePost(),
+      content: 'New copy',
+      imageUrls: '[]',
+      videoUrls: null,
+    };
+    postsRepo.update.mockResolvedValue(updated);
+
+    const result = await service.update('proj_1', 'post_1', 'u1', {
+      content: 'New copy',
+      imageUrls: [],
+    });
+
+    expect(postsRepo.update).toHaveBeenCalled();
+    expect(result.content).toBe('New copy');
   });
 });

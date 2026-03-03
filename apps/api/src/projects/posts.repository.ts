@@ -27,13 +27,28 @@ export class PostsRepository {
     projectId: string,
     userId: string,
   ): Promise<Post | null> {
-    const post = await this.prisma.post.findFirst({
+    return this.prisma.post.findFirst({
       where: {
         id: postId,
         projectId,
         project: { userId },
       },
     });
-    return post;
+  }
+
+  async update(
+    postId: string,
+    data: {
+      content?: string;
+      imageUrls?: string;
+      videoUrls?: string;
+      platform?: string;
+      status?: string;
+    },
+  ): Promise<Post> {
+    return this.prisma.post.update({
+      where: { id: postId },
+      data: { ...data, updatedAt: new Date() },
+    });
   }
 }

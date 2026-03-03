@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { PrismaModule } from '../prisma/prisma.module';
+import { StorageModule } from '../storage/storage.module';
 import { PostsController } from './posts.controller';
 import { PostsRepository } from './posts.repository';
 import { PostsService } from './posts.service';
@@ -8,7 +9,7 @@ import { ProjectsRepository } from './projects.repository';
 import { ProjectsService } from './projects.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, StorageModule],
   controllers: [ProjectsController, PostsController],
   providers: [
     ProjectsService,
