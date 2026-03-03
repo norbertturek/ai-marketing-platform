@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { LucideAngularModule } from 'lucide-angular';
 import {
@@ -22,6 +22,8 @@ import {
 import { ContentApiService } from '../core/content/content-api.service';
 import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
+import { PostsApiService } from '../core/projects/posts-api.service';
+import type { ProjectResponse } from '../core/projects/projects-api.service';
 import { firstValueFrom } from 'rxjs';
 
 const INPUT_CLASS =
@@ -37,7 +39,9 @@ const TEXTAREA_CLASS =
 })
 export class ContentGeneratorPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly projectsApi = inject(ProjectsApiService);
+  private readonly postsApi = inject(PostsApiService);
   private readonly contentApi = inject(ContentApiService);
   private readonly creditsApi = inject(CreditsApiService);
 
@@ -86,6 +90,9 @@ export class ContentGeneratorPage implements OnInit {
   readonly isPreviewOpen = signal(false);
   readonly selectedPlatforms = signal<Platform[]>([]);
   readonly errorMessage = signal<string | null>(null);
+  readonly isSaving = signal(false);
+  readonly projects = signal<ProjectResponse[]>([]);
+  readonly selectedProjectForSave = signal<string | null>(null);
 
   readonly inputClass = INPUT_CLASS;
   readonly textareaClass = TEXTAREA_CLASS;
@@ -137,6 +144,18 @@ export class ContentGeneratorPage implements OnInit {
   readonly canGenerateVideo = computed(() => this.selectedImageIndex() !== null);
   readonly hasContent = computed(() => this.selectedText() !== null);
 
+  readonly canSave = computed(() => {
+    if (!this.selectedText()) return false;
+    const pid = this.projectId();
+    const postId = this.postId();
+    if (pid && postId) return true;
+    return this.selectedProjectForSave() !== null;
+  });
+
+  readonly isInProjectContext = computed(
+    () => this.projectId() !== null && this.postId() !== null
+  );
+
   readonly totalUsedCost = computed(() => {
     let cost = 0;
     if (this.textVariants().length > 0) cost += this.textCost();
@@ -166,6 +185,10 @@ export class ContentGeneratorPage implements OnInit {
     this.creditsApi.getCredits().subscribe({
       next: (res) => this.userCredits.set(res.balance),
       error: () => this.userCredits.set(0),
+    });
+
+    this.projectsApi.getProjects().subscribe({
+      next: (list) => this.projects.set(list),
     });
   }
 
@@ -337,5 +360,97 @@ export class ContentGeneratorPage implements OnInit {
     this.setError(null);
     this.errorMessage.set(null);
     // TODO: integrate with publish API
+  }
+
+  private buildSavePayload(): {
+    content: string;
+    imageUrls?: string[];
+    videoUrls?: string[];
+    platform: string;
+  } {
+    const content = this.selectedText() ?? '';
+    const image = this.selectedImage();
+    const video = this.selectedVideo();
+    const payload: {
+      content: string;
+      imageUrls?: string[];
+      videoUrls?: string[];
+      platform: string;
+    } = {
+      content,
+      platform: this.platform(),
+    };
+    if (image) payload.imageUrls = [image];
+    if (video) payload.videoUrls = [video];
+    return payload;
+  }
+
+  handleSave(): void {
+    const text = this.selectedText();
+    if (!text || this.isSaving()) return;
+
+    const pid = this.projectId();
+    const postId = this.postId();
+    const payload = this.buildSavePayload();
+
+    if (pid && postId) {
+      this.saveExistingPost(pid, postId, payload);
+    } else {
+      const selectedProject = this.selectedProjectForSave();
+      if (!selectedProject) {
+        this.setError('Wybierz projekt do zapisania');
+        return;
+      }
+      this.saveNewPost(selectedProject, payload);
+    }
+  }
+
+  private saveExistingPost(
+    projectId: string,
+    postId: string,
+    payload: ReturnType<ContentGeneratorPage['buildSavePayload']>
+  ): void {
+    this.isSaving.set(true);
+    this.setError(null);
+    this.postsApi
+      .updatePost(projectId, postId, { ...payload, status: 'draft' })
+      .subscribe({
+        next: () => {
+          this.isSaving.set(false);
+          this.router.navigate(['/project', projectId]);
+        },
+        error: (err) => {
+          this.isSaving.set(false);
+          const msg =
+            err?.error?.message ?? err?.message ?? 'Nie udało się zapisać posta.';
+          this.setError(msg);
+        },
+      });
+  }
+
+  private saveNewPost(
+    projectId: string,
+    payload: ReturnType<ContentGeneratorPage['buildSavePayload']>
+  ): void {
+    this.isSaving.set(true);
+    this.setError(null);
+    this.postsApi.createPost(projectId, payload).subscribe({
+      next: (post) => {
+        this.isSaving.set(false);
+        this.router.navigate(['/project', projectId]);
+      },
+      error: (err) => {
+        this.isSaving.set(false);
+        const msg =
+          err?.error?.message ?? err?.message ?? 'Nie udało się zapisać posta.';
+        this.setError(msg);
+      },
+    });
+  }
+
+  selectProjectForSave(projectId: string): void {
+    this.selectedProjectForSave.set(
+      this.selectedProjectForSave() === projectId ? null : projectId
+    );
   }
 }

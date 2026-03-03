@@ -22,6 +22,13 @@ export type UpdatePostPayload = {
   status?: string;
 };
 
+export type CreatePostPayload = {
+  content?: string;
+  imageUrls?: string[];
+  videoUrls?: string[];
+  platform?: string;
+};
+
 @Injectable({ providedIn: 'root' })
 export class PostsApiService {
   private readonly http = inject(HttpClient);
@@ -39,10 +46,13 @@ export class PostsApiService {
     );
   }
 
-  createPost(projectId: string): Observable<PostResponse> {
+  createPost(
+    projectId: string,
+    payload?: CreatePostPayload
+  ): Observable<PostResponse> {
     return this.http.post<PostResponse>(
       `${this.baseUrl}/projects/${projectId}/posts`,
-      {}
+      payload ?? {}
     );
   }
 

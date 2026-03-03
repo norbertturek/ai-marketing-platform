@@ -42,7 +42,16 @@ export class PostsService {
     return posts.map((p) => this.toResponse(p));
   }
 
-  async create(projectId: string, userId: string): Promise<PostResponse> {
+  async create(
+    projectId: string,
+    userId: string,
+    data?: {
+      content?: string;
+      imageUrls?: string[];
+      videoUrls?: string[];
+      platform?: string;
+    },
+  ): Promise<PostResponse> {
     const project = await this.projectsRepository.findByIdForUser(
       projectId,
       userId,
@@ -51,7 +60,39 @@ export class PostsService {
       throw new NotFoundException('Project not found');
     }
     const post = await this.postsRepository.create(projectId);
-    return this.toResponse(post);
+
+    const hasContent =
+      data &&
+      (data.content ||
+        (data.imageUrls && data.imageUrls.length > 0) ||
+        (data.videoUrls && data.videoUrls.length > 0));
+    if (!hasContent) {
+      return this.toResponse(post);
+    }
+
+    const imageUrls = await this.copyMediaToR2(
+      data.imageUrls,
+      projectId,
+      post.id,
+      'image',
+    );
+    const videoUrls = await this.copyMediaToR2(
+      data.videoUrls,
+      projectId,
+      post.id,
+      'video',
+    );
+
+    const updated = await this.postsRepository.update(post.id, {
+      content: data.content,
+      imageUrls:
+        imageUrls !== undefined ? JSON.stringify(imageUrls) : undefined,
+      videoUrls:
+        videoUrls !== undefined ? JSON.stringify(videoUrls) : undefined,
+      platform: data.platform,
+      status: 'draft',
+    });
+    return this.toResponse(updated);
   }
 
   async findById(

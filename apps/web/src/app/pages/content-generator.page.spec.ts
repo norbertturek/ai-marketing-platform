@@ -7,11 +7,13 @@ import { LucideAngularModule } from 'lucide-angular';
 import { LUCIDE_ICONS } from '../app.config';
 import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
+import { PostsApiService } from '../core/projects/posts-api.service';
 import { ContentGeneratorPage } from './content-generator.page';
 
 describe('ContentGeneratorPage', () => {
   const projectsApiMock = {
     getProject: vi.fn(),
+    getProjects: vi.fn(),
   };
   const creditsApiMock = {
     getCredits: vi.fn(),
@@ -19,6 +21,8 @@ describe('ContentGeneratorPage', () => {
 
   beforeEach(async () => {
     projectsApiMock.getProject.mockReset();
+    projectsApiMock.getProjects.mockReset();
+    projectsApiMock.getProjects.mockReturnValue(of([]));
     projectsApiMock.getProject.mockReturnValue(
       of({
         id: 'proj_1',
@@ -42,6 +46,7 @@ describe('ContentGeneratorPage', () => {
         provideRouter([]),
         { provide: ProjectsApiService, useValue: projectsApiMock },
         { provide: CreditsApiService, useValue: creditsApiMock },
+        { provide: PostsApiService, useValue: { createPost: vi.fn(), updatePost: vi.fn() } },
         importProvidersFrom(LucideAngularModule.pick(LUCIDE_ICONS)),
       ],
     }).compileComponents();
