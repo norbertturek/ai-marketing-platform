@@ -89,32 +89,18 @@ export class ContentGeneratorPage implements OnInit {
 
   readonly inputClass = INPUT_CLASS;
   readonly textareaClass = TEXTAREA_CLASS;
-  readonly platformsList: Platform[] = [
-    'facebook',
-    'instagram',
-    'linkedin',
-    'twitter',
-    'tiktok',
-  ];
+  readonly platformsList: Platform[] = ['facebook', 'instagram', 'linkedin', 'twitter', 'tiktok'];
   readonly runwareImageModels = RUNWARE_IMAGE_MODELS;
 
   contentCount(): number {
-    return [
-      this.selectedText(),
-      this.selectedImage(),
-      this.selectedVideo(),
-    ].filter((x) => x != null).length;
+    return [this.selectedText(), this.selectedImage(), this.selectedVideo()].filter(
+      (x) => x != null,
+    ).length;
   }
 
-  readonly textCost = computed(
-    () => this.numTextVariants() * COST_ESTIMATES.textGeneration
-  );
-  readonly imageCost = computed(
-    () => this.numImageVariants() * COST_ESTIMATES.imageGeneration
-  );
-  readonly videoCost = computed(
-    () => this.numVideoVariants() * COST_ESTIMATES.videoGeneration
-  );
+  readonly textCost = computed(() => this.numTextVariants() * COST_ESTIMATES.textGeneration);
+  readonly imageCost = computed(() => this.numImageVariants() * COST_ESTIMATES.imageGeneration);
+  readonly videoCost = computed(() => this.numVideoVariants() * COST_ESTIMATES.videoGeneration);
 
   readonly selectedText = computed(() => {
     const idx = this.selectedTextIndex();
@@ -131,20 +117,14 @@ export class ContentGeneratorPage implements OnInit {
     const vars = this.videoVariants();
     return idx !== null && vars[idx] !== undefined ? vars[idx] : null;
   });
-  readonly canGenerateImage = computed(
-    () => this.imagePrompt().trim().length > 0
-  );
+  readonly canGenerateImage = computed(() => this.imagePrompt().trim().length > 0);
   readonly canGenerateVideo = computed(() => this.selectedImageIndex() !== null);
   readonly hasContent = computed(() => this.selectedText() !== null);
 
   readonly totalUsedCost = computed(() => {
     let cost = 0;
     if (this.textVariants().length > 0) cost += this.textCost();
-    if (
-      this.imageVariants().length > 0 &&
-      !this.uploadedImage()
-    )
-      cost += this.imageCost();
+    if (this.imageVariants().length > 0 && !this.uploadedImage()) cost += this.imageCost();
     if (this.videoVariants().length > 0) cost += this.videoCost();
     return cost;
   });
@@ -184,12 +164,12 @@ export class ContentGeneratorPage implements OnInit {
   async handleGenerateText(): Promise<void> {
     const prompt = this.textPrompt().trim();
     if (!prompt) {
-      this.setError('Wpisz prompt aby wygenerować tekst');
+      this.setError('Enter a prompt to generate text');
       return;
     }
     const cost = this.textCost();
     if (this.userCredits() < cost) {
-      this.setError(`Niewystarczająca ilość kredytów! Potrzebujesz ${cost} kredytów.`);
+      this.setError(`Insufficient credits! You need ${cost} credits.`);
       return;
     }
     this.isGeneratingText.set(true);
@@ -205,7 +185,7 @@ export class ContentGeneratorPage implements OnInit {
           maxLength: this.maxLength(),
           model: this.aiModel(),
           temperature: this.temperature(),
-        })
+        }),
       );
       this.textVariants.set(res.texts);
       this.selectedTextIndex.set(0);
@@ -214,10 +194,10 @@ export class ContentGeneratorPage implements OnInit {
     } catch (err) {
       const msg =
         err instanceof HttpErrorResponse
-          ? (err.error as { message?: string })?.message ?? err.message
+          ? ((err.error as { message?: string })?.message ?? err.message)
           : err instanceof Error
             ? err.message
-            : 'Błąd generowania tekstu';
+            : 'Text generation error';
       this.setError(msg);
     } finally {
       this.isGeneratingText.set(false);
@@ -227,14 +207,12 @@ export class ContentGeneratorPage implements OnInit {
   async handleGenerateImage(): Promise<void> {
     const prompt = this.imagePrompt().trim();
     if (!prompt) {
-      this.setError('Wpisz prompt dla obrazka');
+      this.setError('Enter an image prompt');
       return;
     }
     const cost = this.imageCost();
     if (this.userCredits() < cost) {
-      this.setError(
-        `Niewystarczająca ilość kredytów! Potrzebujesz ${cost} kredytów.`
-      );
+      this.setError(`Insufficient credits! You need ${cost} credits.`);
       return;
     }
     this.isGeneratingImage.set(true);
@@ -243,11 +221,8 @@ export class ContentGeneratorPage implements OnInit {
     this.uploadedImage.set(null);
     this.setError(null);
 
-    const dims =
-      ASPECT_RATIO_DIMENSIONS[this.aspectRatio()] ??
-      ASPECT_RATIO_DIMENSIONS['1:1'];
-    const model =
-      this.customImageModel().trim() || this.imageModel();
+    const dims = ASPECT_RATIO_DIMENSIONS[this.aspectRatio()] ?? ASPECT_RATIO_DIMENSIONS['1:1'];
+    const model = this.customImageModel().trim() || this.imageModel();
 
     try {
       const res = await firstValueFrom(
@@ -261,7 +236,7 @@ export class ContentGeneratorPage implements OnInit {
           cfgScale: this.cfgScale(),
           numberResults: this.numImageVariants(),
           outputFormat: this.imageOutputFormat(),
-        })
+        }),
       );
       this.imageVariants.set(res.urls);
       this.selectedImageIndex.set(0);
@@ -269,10 +244,10 @@ export class ContentGeneratorPage implements OnInit {
     } catch (err) {
       const msg =
         err instanceof HttpErrorResponse
-          ? (err.error as { message?: string })?.message ?? err.message
+          ? ((err.error as { message?: string })?.message ?? err.message)
           : err instanceof Error
             ? err.message
-            : 'Błąd generowania obrazka';
+            : 'Image generation error';
       this.setError(msg);
     } finally {
       this.isGeneratingImage.set(false);
@@ -297,12 +272,12 @@ export class ContentGeneratorPage implements OnInit {
 
   async handleGenerateVideo(): Promise<void> {
     if (this.selectedImageIndex() === null) {
-      this.setError('Najpierw wybierz obrazek');
+      this.setError('Choose an image first');
       return;
     }
     const cost = this.videoCost();
     if (this.userCredits() < cost) {
-      this.setError(`Niewystarczająca ilość kredytów! Potrzebujesz ${cost} kredytów.`);
+      this.setError(`Insufficient credits! You need ${cost} credits.`);
       return;
     }
     this.isGeneratingVideo.set(true);
@@ -313,7 +288,7 @@ export class ContentGeneratorPage implements OnInit {
     const variants: string[] = [];
     for (let i = 0; i < this.numVideoVariants(); i++) {
       variants.push(
-        `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?v=${i}`
+        `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?v=${i}`,
       );
     }
     this.videoVariants.set(variants);
@@ -324,14 +299,14 @@ export class ContentGeneratorPage implements OnInit {
 
   togglePlatform(p: Platform): void {
     this.selectedPlatforms.update((arr) =>
-      arr.includes(p) ? arr.filter((x) => x !== p) : [...arr, p]
+      arr.includes(p) ? arr.filter((x) => x !== p) : [...arr, p],
     );
   }
 
   handleShare(): void {
     const platforms = this.selectedPlatforms();
     if (platforms.length === 0) {
-      this.setError('Wybierz przynajmniej jedną platformę');
+      this.setError('Choose at least one platform');
       return;
     }
     this.setError(null);

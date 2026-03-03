@@ -28,13 +28,11 @@ describe('ContentGeneratorPage', () => {
         postsCount: 0,
         createdAt: '2026-03-02T00:00:00.000Z',
         updatedAt: '2026-03-02T00:00:00.000Z',
-      })
+      }),
     );
 
     creditsApiMock.getCredits.mockReset();
-    creditsApiMock.getCredits.mockReturnValue(
-      of({ balance: 100, usage: [] })
-    );
+    creditsApiMock.getCredits.mockReturnValue(of({ balance: 100, usage: [] }));
 
     await TestBed.configureTestingModule({
       imports: [ContentGeneratorPage],
@@ -51,18 +49,18 @@ describe('ContentGeneratorPage', () => {
     const fixture = TestBed.createComponent(ContentGeneratorPage);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Generuj Tekst');
-    expect(el.textContent).toContain('Generuj Obrazek');
-    expect(el.textContent).toContain('Generuj Video');
+    expect(el.textContent).toContain('Generate Text');
+    expect(el.textContent).toContain('Generate Image');
+    expect(el.textContent).toContain('Generate Video');
   });
 
   it('has cost badges for each step', () => {
     const fixture = TestBed.createComponent(ContentGeneratorPage);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toMatch(/1\s+kredytów/);
-    expect(el.textContent).toMatch(/5\s+kredytów/);
-    expect(el.textContent).toMatch(/50\s+kredytów/);
+    expect(el.textContent).toMatch(/1\s+credits/);
+    expect(el.textContent).toMatch(/5\s+credits/);
+    expect(el.textContent).toMatch(/50\s+credits/);
   });
 
   it('fetches credits on init', () => {
