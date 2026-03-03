@@ -32,10 +32,7 @@ export class CreditsRepository {
     return this.prisma.creditUsage.create({ data });
   }
 
-  async getUsageHistory(
-    userId: string,
-    limit = 20,
-  ): Promise<CreditUsage[]> {
+  async getUsageHistory(userId: string, limit = 20): Promise<CreditUsage[]> {
     return this.prisma.creditUsage.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },

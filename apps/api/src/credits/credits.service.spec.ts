@@ -100,11 +100,7 @@ describe('CreditsService', () => {
         createdAt: new Date(),
       });
 
-      const result = await service.deductAndLog(
-        'user_1',
-        1,
-        'text_generation',
-      );
+      const result = await service.deductAndLog('user_1', 1, 'text_generation');
 
       expect(result).toBe(0);
       expect(repository.deduct).toHaveBeenCalledWith('user_1', 1);
