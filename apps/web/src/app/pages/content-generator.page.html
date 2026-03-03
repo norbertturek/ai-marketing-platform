@@ -66,7 +66,7 @@
               </div>
 
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Model AI</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">AI Model</label>
                 <select [value]="aiModel()" (change)="aiModel.set($any($event.target).value)"
                   [class]="inputClass + ' cursor-pointer'">
                   <option value="gpt-4o-mini">GPT-4o Mini</option>
@@ -175,7 +175,7 @@
                 </select>
               </div>
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Custom AIR ID (optional)</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">Custom AI model ID (optional)</label>
                 <input type="text" [value]="customImageModel()"
                   (input)="customImageModel.set($any($event.target).value)" [class]="inputClass"
                   placeholder="e.g. civitai:123@456" [disabled]="!canGenerateImage()" />
@@ -213,7 +213,7 @@
               </div>
 
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Liczba wariantów</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">Number of variants</label>
                 <div class="flex gap-1 rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-1">
                   @for (n of [1,2,3,4]; track n) {
                   <button type="button" (click)="numImageVariants.set(n)" [disabled]="!canGenerateImage()"
@@ -283,7 +283,7 @@
               <div
                 class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
                 <lucide-icon name="Coins" class="size-3"></lucide-icon>
-                {{ videoCost() }} kredytów
+                {{ videoCost() }} credits
               </div>
             </div>
 
