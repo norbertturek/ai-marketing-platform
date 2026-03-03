@@ -12,6 +12,8 @@ The platform is a monorepo with:
 - `apps/api`: NestJS 11 backend API
 - PostgreSQL 16 as primary relational database
 - Prisma ORM in the API layer
+- Cloudflare R2 (S3-compatible) for post media (images, videos)
+- Runware + OpenAI for AI content generation (text, image, video)
 - Turborepo for task orchestration across apps/packages
 
 ## High-Level Diagram
@@ -21,6 +23,8 @@ flowchart LR
   U[User Browser] --> W[Angular Web App<br/>apps/web]
   W -->|HTTP/JSON| A[NestJS API<br/>apps/api]
   A -->|Prisma Client| P[(PostgreSQL 16)]
+  A -->|S3 API| R[Cloudflare R2]
+  A -->|REST| E[Runware / OpenAI]
 ```
 
 ## Container and Runtime View
@@ -43,6 +47,18 @@ flowchart LR
 
 - PostgreSQL 16 container defined in `docker-compose.yml`.
 - Single source of persisted relational data.
+- **Post model:** `content`, `imageUrls`, `videoUrls`, `platform`, `status` (extended from placeholder).
+
+### Storage (Cloudflare R2)
+
+- S3-compatible object storage for post media (images/videos from Runware).
+- `R2Service` uploads from URL or base64; keys: `projects/{projectId}/posts/{postId}/{image|video}/...`
+- Env: `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`, `R2_PUBLIC_URL` (optional).
+
+### AI Content (Runware, OpenAI)
+
+- `ContentModule`: text generation (OpenAI), image/video (Runware).
+- Env: `RUNWARE_API_KEY`, `OPENAI_API_KEY`.
 
 ## Source Layout
 
@@ -100,13 +116,16 @@ flowchart LR
 - Frontend: unit/integration tests for changed UI behavior.
 - Backend: unit tests for services and e2e tests for critical endpoints.
 
+## Environment variables
+
+Canonical list in `apps/api/.env.example`. Required: `DATABASE_URL`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`. Optional: `PORT`, `CORS_ORIGIN`, JWT TTLs, `BCRYPT_ROUNDS`, `RUNWARE_API_KEY`, `OPENAI_API_KEY`, `R2_*`.
+
 ## Known Gaps / To Be Documented
 
 - API contract documentation (endpoints, payloads, errors)
 - Domain model and bounded contexts
-- Deployment architecture (staging/production)
 - CI/CD and release process
-- Authentication and authorization flows
+- Authentication and authorization flows (basic JWT flow implemented)
 
 ## Change Management
 
