@@ -1,13 +1,13 @@
 ---
 name: ship
-description: Commit, push, create a pull request, and merge — full shipping workflow in one command. Use when the user is done with a feature and wants to ship it to main.
+description: Commit, push, and create a pull request for code review. Does NOT merge — the user reviews and merges manually. Use when the user is done with a feature and wants to open a PR.
 argument-hint: "[optional commit message or feature description]"
 allowed-tools: Bash(git *), Bash(gh *), Bash(pnpm *)
 ---
 
 # Ship
 
-Ship the current changes to main through a proper PR workflow: commit → branch → push → PR → merge.
+Ship the current changes as a PR for code review: commit → branch → push → PR. Do NOT merge — leave the PR open for the user to review.
 
 ## Workflow
 
@@ -88,15 +88,14 @@ EOF
 - Body includes Summary, Changes, and Test plan sections
 - Always include the test plan checklist
 
-### Step 5: Merge the pull request
+### Step 5: Switch back to main
 
-1. Wait for PR creation to complete.
-2. Merge using: `gh pr merge --squash --delete-branch`
-   - **Squash merge** to keep main history clean
-   - **Delete branch** to clean up after merge
-3. Switch back to main: `git checkout main`
-4. Pull latest: `git pull origin main`
-5. Report the merged PR URL to the user.
+After creating the PR, switch back to main so the next phase of work starts clean:
+
+1. `git checkout main`
+2. Report the PR URL to the user for review.
+
+**Do NOT merge the PR.** The user will review and merge manually.
 
 ## Output
 
@@ -106,8 +105,7 @@ After completion, report:
 ✓ Branch: feat/short-description
 ✓ Commit: feat(scope): description
 ✓ PR: #123 — https://github.com/user/repo/pull/123
-✓ Merged to main
-✓ Branch cleaned up
+→ Ready for code review
 ```
 
 ## Safety Rules
@@ -115,8 +113,5 @@ After completion, report:
 - **Never force push** (`--force` or `-f`)
 - **Never commit secrets** (`.env`, credentials, API keys)
 - **Never skip tests** — if tests fail, stop and fix
-- **Never merge with failing checks** — wait for CI if configured
-- **Always squash merge** — keeps main history clean
-- **Always delete the feature branch** after merge
-- If the user says "don't merge" or "just PR", stop after Step 4
+- **Never merge** — PRs are for the user to review and merge
 - If unsure about anything, ask the user before proceeding
