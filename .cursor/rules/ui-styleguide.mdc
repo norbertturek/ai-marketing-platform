@@ -22,10 +22,9 @@
 
 ## General layout & components
 
-- Prefer semantic tokens wired via `styles.scss`:
-  - `bg-background text-foreground` for main surfaces
-  - `bg-card text-card-foreground border-border` for cards
-  - `text-muted-foreground` or `text-zinc-500` for secondary text
+- The **Angular app shell** uses dark theme: `bg-[#0a0a0a]`, header `border-zinc-800/50`, nav `text-zinc-400 hover:bg-zinc-800`.
+- Page content surfaces: `bg-zinc-900` / `bg-zinc-900/50`, `border-zinc-800`, `text-white` / `text-zinc-500`.
+- Prefer semantic tokens when relevant; for dark app pages use `zinc-*` and `#0a0a0a`.
 - Keep a consistent vertical rhythm using `space-y-4` / `space-y-6`.
 - Use existing primitives:
   - Angular: spartan-ng helm components (`@spartan-ng/helm/*`, `hlmBtn`)

@@ -88,22 +88,22 @@ describe('App', () => {
       isAuthenticatedSignal.set(true);
     });
 
-    it('shows Dashboard, Playground and Logout and does not show Sign in or Sign up', () => {
+    it('shows Playground, Projects and Logout and does not show Sign in or Sign up', () => {
       const fixture = TestBed.createComponent(App);
       fixture.detectChanges();
       const el = fixture.nativeElement as HTMLElement;
-      expect(el.textContent).toContain('Dashboard');
       expect(el.textContent).toContain('Playground');
+      expect(el.textContent).toContain('Projects');
       expect(el.textContent).toContain('Logout');
       expect(el.textContent).not.toContain('Sign in');
       expect(el.textContent).not.toContain('Sign up');
     });
 
-    it('logo link points to dashboard', () => {
+    it('logo link points to projects', () => {
       const fixture = TestBed.createComponent(App);
       fixture.detectChanges();
       const logoLink = (fixture.nativeElement as HTMLElement).querySelector(
-        'a[routerlink="/dashboard"]'
+        'a[routerlink="/projects"]'
       );
       expect(logoLink).toBeTruthy();
     });

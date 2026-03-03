@@ -1,36 +1,39 @@
-<div class="min-h-screen bg-muted/30">
-  <header class="border-b bg-background/95 backdrop-blur">
-    <div class="mx-auto flex h-16 w-full max-w-5xl items-center justify-between px-4">
-      <a [routerLink]="isAuthenticated() ? '/dashboard' : '/signin'" class="text-lg font-semibold tracking-tight">
+<div class="dark min-h-screen bg-[#0a0a0a] text-white">
+  <header class="sticky top-0 z-10 border-b border-zinc-800/50 bg-[#0a0a0a] backdrop-blur-sm">
+    <div class="container mx-auto flex h-14 flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6">
+      <a
+        [routerLink]="isAuthenticated() ? '/projects' : '/signin'"
+        class="flex items-center gap-3 text-xs font-medium text-white md:text-sm"
+      >
+        <span aria-hidden="true" class="inline-flex size-5 items-center justify-center md:size-6">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936a2 2 0 0 0 1.437-2.999l-.976-2.434a.5.5 0 0 1 .59-.694l8.124 1.73a2 2 0 0 0 1.435-.999l1.42-2.9a.5.5 0 0 1 .628-.223L22 5.73a.5.5 0 0 1 .234.798l-3.7 4.02a2 2 0 0 0-.3 2.285l2.098 4.667a.5.5 0 0 1-.578.684l-5.485-1.897a2 2 0 0 0-1.378.052l-3.124 1.375a.5.5 0 0 1-.654-.466l-.267-4.714Z" />
+          </svg>
+        </span>
         AI Marketing Platform
       </a>
 
-      <nav class="flex items-center gap-2">
+      <nav class="flex flex-shrink-0 items-center gap-2">
         @if (isAuthenticated()) {
-        <a
-          routerLink="/dashboard"
-          routerLinkActive="bg-secondary text-foreground"
-          class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          Dashboard
-        </a>
-        <a
-          routerLink="/playground"
-          routerLinkActive="bg-secondary text-foreground"
-          class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          Playground
-        </a>
-        <a
-          routerLink="/projects"
-          routerLinkActive="bg-secondary text-foreground"
-          class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
-        >
-          Projects
-        </a>
+          <a
+            routerLink="/playground"
+            routerLinkActive="bg-zinc-800 text-white"
+            [routerLinkActiveOptions]="{ exact: true }"
+            class="rounded-md px-3 py-2 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white md:text-sm"
+          >
+            Playground
+          </a>
+          <a
+            routerLink="/projects"
+            routerLinkActive="bg-zinc-800 text-white"
+            [routerLinkActiveOptions]="{ exact: false }"
+            class="rounded-md px-3 py-2 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white md:text-sm"
+          >
+            Projects
+          </a>
           <button
             type="button"
-            class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            class="rounded-md px-3 py-2 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white md:text-sm"
             (click)="signOut()"
           >
             Logout
@@ -38,15 +41,15 @@
         } @else {
           <a
             routerLink="/signin"
-            routerLinkActive="bg-secondary text-foreground"
-            class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            routerLinkActive="bg-zinc-800 text-white"
+            class="rounded-md px-3 py-2 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white md:text-sm"
           >
             Sign in
           </a>
           <a
             routerLink="/signup"
-            routerLinkActive="bg-secondary text-foreground"
-            class="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            routerLinkActive="bg-zinc-800 text-white"
+            class="rounded-md px-3 py-2 text-xs text-zinc-400 transition-colors hover:bg-zinc-800 hover:text-white md:text-sm"
           >
             Sign up
           </a>
@@ -55,7 +58,7 @@
     </div>
   </header>
 
-  <main class="mx-auto w-full max-w-5xl px-4 py-8">
+  <main class="mx-auto min-h-[calc(100vh-3.5rem)] w-full max-w-[1400px] bg-[#0a0a0a] px-4 py-8 md:px-6">
     <router-outlet />
   </main>
 </div>

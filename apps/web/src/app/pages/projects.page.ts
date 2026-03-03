@@ -1,36 +1,50 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { LucideAngularModule } from 'lucide-angular';
 import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../core/projects/projects-api.service';
 
 @Component({
   selector: 'app-projects-page',
-  imports: [ReactiveFormsModule, ...HlmButtonImports],
+  imports: [ReactiveFormsModule, RouterLink, LucideAngularModule, ...HlmButtonImports],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="dark rounded-xl border border-zinc-800/50 bg-[#0a0a0a] p-6 text-white shadow-sm md:p-8">
-      <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div class="mb-6 md:mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-2xl font-medium text-white">Twoje projekty</h1>
-          <p class="mt-2 text-sm text-zinc-500">
-            Zarzadzaj kampaniami marketingowymi w jednym miejscu.
+          <h1 class="text-xl md:text-2xl font-medium text-white">Twoje projekty</h1>
+          <p class="mt-2 text-xs md:text-sm text-zinc-500">
+            Zarządzaj kampaniami marketingowymi w jednym miejscu.
           </p>
         </div>
 
-        <button hlmBtn type="button" class="bg-white text-black hover:bg-zinc-200" (click)="toggleCreateForm()">
+        <button
+          hlmBtn
+          type="button"
+          size="sm"
+          class="bg-white text-black hover:bg-zinc-200"
+          (click)="toggleCreateForm()"
+        >
+          <lucide-icon name="Plus" class="size-4" aria-hidden="true"></lucide-icon>
           {{ showCreateForm() ? 'Zamknij formularz' : 'Nowy projekt' }}
         </button>
       </div>
 
       @if (showCreateForm()) {
-        <form class="mb-8 space-y-4 rounded-lg border border-zinc-800 bg-zinc-900/70 p-4" [formGroup]="form" (ngSubmit)="createProject()">
+        <form
+          class="mb-8 space-y-4 rounded-lg border border-zinc-800 bg-zinc-900/70 p-4"
+          [formGroup]="form"
+          (ngSubmit)="createProject()"
+        >
           <div>
             <label for="project-name" class="mb-2 block text-xs text-zinc-400">Nazwa projektu</label>
             <input
               id="project-name"
               type="text"
               formControlName="name"
-              class="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px]"
+              class="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500"
               placeholder="np. Kampania Wiosna 2026"
             />
             @if (nameError) {
@@ -39,23 +53,27 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
           </div>
 
           <div>
-            <label for="project-description" class="mb-2 block text-xs text-zinc-400">Opis (opcjonalnie)</label>
+            <label for="project-description" class="mb-2 block text-xs text-zinc-400"
+              >Opis (opcjonalnie)</label
+            >
             <textarea
               id="project-description"
               rows="3"
               formControlName="description"
-              class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px]"
-              placeholder="Krotki opis projektu..."
+              class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500"
+              placeholder="Krótki opis projektu..."
             ></textarea>
           </div>
 
           <div>
-            <label for="project-context" class="mb-2 block text-xs text-zinc-400">Context AI (opcjonalnie)</label>
+            <label for="project-context" class="mb-2 block text-xs text-zinc-400"
+              >Context AI (opcjonalnie)</label
+            >
             <textarea
               id="project-context"
               rows="4"
               formControlName="context"
-              class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px]"
+              class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500"
               placeholder="Ton, styl, wytyczne marki..."
             ></textarea>
           </div>
@@ -65,42 +83,89 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
           }
 
           <div class="flex justify-end gap-3">
-            <button hlmBtn variant="outline" type="button" class="border-zinc-700 hover:bg-zinc-800" (click)="cancelCreate()">
+            <button
+              hlmBtn
+              variant="outline"
+              type="button"
+              class="border-zinc-700 hover:bg-zinc-800"
+              (click)="cancelCreate()"
+            >
               Anuluj
             </button>
-            <button hlmBtn type="submit" class="bg-white text-black hover:bg-zinc-200" [disabled]="isSubmitting()">
-              {{ isSubmitting() ? 'Tworzenie...' : 'Utworz projekt' }}
+            <button
+              hlmBtn
+              type="submit"
+              class="bg-white text-black hover:bg-zinc-200"
+              [disabled]="isSubmitting()"
+            >
+              {{ isSubmitting() ? 'Tworzenie...' : 'Utwórz projekt' }}
             </button>
           </div>
         </form>
       }
 
       @if (loading()) {
-        <div class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-8 text-center text-sm text-zinc-500">
-          Ladowanie projektow...
+        <div
+          class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-8 text-center text-sm text-zinc-500"
+        >
+          Ładowanie projektów...
         </div>
       } @else if (errorMessage()) {
-        <div class="rounded-lg border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300">
+        <div
+          class="rounded-lg border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300"
+        >
           {{ errorMessage() }}
         </div>
       } @else if (projects().length === 0) {
-        <div class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-8 text-center">
-          <h2 class="text-lg font-medium text-white">Brak projektow</h2>
-          <p class="mt-2 text-sm text-zinc-500">Utworz pierwszy projekt, aby zaczac prace.</p>
+        <div
+          class="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-12 text-center"
+        >
+          <lucide-icon name="Folder" class="mx-auto mb-4 size-16 text-zinc-700" aria-hidden="true"></lucide-icon>
+          <h2 class="text-lg font-medium text-white">Brak projektów</h2>
+          <p class="mt-2 text-sm text-zinc-500 mb-6">
+            Zacznij od utworzenia swojego pierwszego projektu.
+          </p>
+          <button
+            hlmBtn
+            type="button"
+            class="bg-white text-black hover:bg-zinc-200 h-9 text-sm"
+            (click)="toggleCreateForm()"
+          >
+            <lucide-icon name="Plus" class="mr-2 size-4" aria-hidden="true"></lucide-icon>
+            Utwórz pierwszy projekt
+          </button>
         </div>
       } @else {
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           @for (project of projects(); track project.id) {
-            <article class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-5">
-              <div class="mb-3 flex items-center justify-between">
-                <span class="text-xs text-zinc-500">{{ formatDate(project.createdAt) }}</span>
-                <span class="text-xs text-zinc-500">{{ project.postsCount }} tresci</span>
-              </div>
-              <h3 class="text-base font-medium text-white">{{ project.name }}</h3>
-              <p class="mt-2 line-clamp-2 text-sm text-zinc-400">
-                {{ project.description || 'Brak opisu' }}
-              </p>
-            </article>
+            <a
+              [routerLink]="['/project', project.id]"
+              class="group block"
+            >
+              <article
+                class="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-5 transition-colors hover:border-zinc-700 cursor-pointer"
+              >
+                <div class="mb-4 flex items-start justify-between">
+                  <div
+                    class="flex size-10 items-center justify-center rounded-lg bg-zinc-800/50 text-zinc-400 transition-colors group-hover:bg-zinc-800 p-2.5"
+                    aria-hidden="true"
+                  >
+                    <lucide-icon name="Folder" class="size-5"></lucide-icon>
+                  </div>
+                  <span class="text-xs text-zinc-600">{{ project.postsCount }} treści</span>
+                </div>
+                <h3 class="text-base font-medium text-white mb-2 group-hover:text-white transition-colors">
+                  {{ project.name }}
+                </h3>
+                <p class="text-xs text-zinc-500 line-clamp-2 mb-4">
+                  {{ project.description || 'Brak opisu' }}
+                </p>
+                <div class="flex items-center text-xs text-zinc-600">
+                  <lucide-icon name="Calendar" class="mr-1 size-3"></lucide-icon>
+                  {{ formatDate(project.createdAt) }}
+                </div>
+              </article>
+            </a>
           }
         </div>
       }
@@ -145,7 +210,7 @@ export class ProjectsPage implements OnInit {
       return 'Nazwa projektu jest wymagana';
     }
     if (control.hasError('maxlength')) {
-      return 'Nazwa projektu moze miec maksymalnie 255 znakow';
+      return 'Nazwa projektu może mieć maksymalnie 255 znaków';
     }
     return null;
   }
@@ -205,7 +270,7 @@ export class ProjectsPage implements OnInit {
     this.projectsApi.getProjects().subscribe({
       next: (projects) => this.projects.set(projects),
       error: () => {
-        this.errorMessage.set('Nie udalo sie zaladowac projektow. Sprobuj ponownie.');
+        this.errorMessage.set('Nie udało się załadować projektów. Spróbuj ponownie.');
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),
@@ -214,8 +279,8 @@ export class ProjectsPage implements OnInit {
 
   private mapCreateError(error: unknown): string {
     if (error instanceof HttpErrorResponse && error.status === 400) {
-      return 'Niepoprawne dane projektu. Sprawdz formularz.';
+      return 'Niepoprawne dane projektu. Sprawdź formularz.';
     }
-    return 'Nie udalo sie utworzyc projektu. Sprobuj ponownie.';
+    return 'Nie udało się utworzyć projektu. Spróbuj ponownie.';
   }
 }

@@ -30,6 +30,8 @@ flowchart LR
 - Angular 21 application serving the UI.
 - Responsible for routing, form flows, and user-facing state.
 - Communicates with backend through HTTP APIs.
+- **Routes:** `''` redirects to `playground`; `playground` (Content Generator / AI content creation); `projects` (project list); `project/:projectId`; `project/:projectId/post/:postId`; `signin` / `signup`. Protected routes use `authGuard`.
+- **App shell:** Dark theme (`#0a0a0a` background, zinc borders), sticky header, spartan-ng components.
 
 ### Backend (`apps/api`)
 

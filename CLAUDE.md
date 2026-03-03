@@ -51,8 +51,10 @@ pnpm --filter api prisma:generate    # regenerate Prisma client after schema cha
 
 **Frontend patterns:**
 - All pages use standalone components with `inject()` for DI, Signals for reactive state, and `OnPush` change detection.
-- Routes are lazy-loaded (`loadComponent`). The `dashboard` route is guarded by `authGuard`.
+- Routes are lazy-loaded (`loadComponent`). Protected routes use `authGuard`.
 - HTTP access is encapsulated in `*ApiService` classes; components never construct request details directly.
+- **Routes:** `''` → redirect to `playground`; `playground` (Content Generator); `projects`; `project/:projectId`; `project/:projectId/post/:postId`; `signin` / `signup`.
+- **App shell:** Dark theme (`bg-[#0a0a0a]`), sticky header with zinc borders, nav links `text-zinc-400 hover:bg-zinc-800`.
 - UI components come from **spartan-ng** (headless `@spartan-ng/brain` + styled `@spartan-ng/helm` layer). The helm layer lives in `apps/web/libs/ui/` and is aliased as `@spartan-ng/helm`. Add new components with `npx spartan-cli add <component>`.
 - Tailwind v4 is used for styling; SCSS for component-level styles.
 
@@ -115,7 +117,7 @@ Before considering any task complete:
   - For auth/onboarding flows, copy the structure from:
     - `apps/web/src/app/pages/signin.page.ts` and `signup.page.ts`
     - `AI Marketing Platform/src/app/pages/LoginPage.tsx` and `RegisterPage.tsx`
-  - Prefer semantic Tailwind tokens wired via `styles.scss` for general pages, and reserve raw dark `zinc-*`/`#0a0a0a` treatments for full-bleed experiences like auth.
+  - The app shell uses a dark theme (`#0a0a0a`, zinc borders); page content follows the same dark treatment. Prefer `zinc-*` and `#0a0a0a` for app pages; reserve semantic tokens where appropriate.
 - Keep validation messages, error handling, and feedback (inline errors, toasts) consistent with the patterns described in the styleguide.
 
 ## Hooks

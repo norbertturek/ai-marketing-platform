@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
+import { importProvidersFrom } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { vi } from 'vitest';
+import { LucideAngularModule } from 'lucide-angular';
+import { LUCIDE_ICONS } from '../app.config';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
 import { ProjectsPage } from './projects.page';
 
@@ -21,6 +24,7 @@ describe('ProjectsPage', () => {
       providers: [
         provideRouter([]),
         { provide: ProjectsApiService, useValue: projectsApiMock },
+        importProvidersFrom(LucideAngularModule.pick(LUCIDE_ICONS)),
       ],
     }).compileComponents();
   });

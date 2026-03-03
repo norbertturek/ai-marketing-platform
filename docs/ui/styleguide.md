@@ -87,11 +87,17 @@ Bonus / informational cards (e.g. “500 free credits”) follow the same patter
 
 ### Main app shell
 
-For the main Angular dashboard and React project views:
+The Angular app uses a **dark theme** for the global shell, matching the React reference:
 
-- Use `bg-background text-foreground` on `body` (already applied in `styles.scss`)
-- Use a clear page header:
-  - Title, optional description, and primary action(s) grouped in a responsive row
+- **Outer wrapper:** `dark min-h-screen bg-[#0a0a0a] text-white`
+- **Header:** `sticky top-0 z-10 border-b border-zinc-800/50 bg-[#0a0a0a] backdrop-blur-sm`
+- **Logo:** Sparkles icon + "AI Marketing Platform", `text-white`
+- **Nav links:** `text-zinc-400 hover:bg-zinc-800 hover:text-white`; active: `bg-zinc-800 text-white`
+- **Main area:** `bg-[#0a0a0a]`, max-width container for content
+
+When `html` has class `dark`, `:root.dark` CSS variables apply for body. Page content (Dashboard, Projects, Playground) uses dark surfaces (`bg-zinc-900`, `border-zinc-800`) for consistency.
+
+- Use a clear page header: title, optional description, and primary action(s) in a responsive row.
 - Avoid full-bleed cards stacked without spacing; keep consistent vertical rhythm (`space-y-4` / `space-y-6`).
 
 ---

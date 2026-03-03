@@ -1,6 +1,8 @@
 # Web
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Angular 21 frontend for AI Marketing Platform. Uses dark theme (`#0a0a0a`), spartan-ng components, and signals. Main routes: Playground (content generator), Projects, Dashboard, auth (signin/signup).
+
+Generated with [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
 
 ## Development server
 

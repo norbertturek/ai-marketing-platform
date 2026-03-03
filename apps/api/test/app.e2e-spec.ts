@@ -206,5 +206,36 @@ describe('AppController (e2e)', () => {
       .get(`/api/projects/${createdProject.id}`)
       .set('Authorization', `Bearer ${otherAccessToken}`)
       .expect(404);
+
+    const createPostResponse = await request(app.getHttpServer())
+      .post(`/api/projects/${createdProject.id}/posts`)
+      .set('Authorization', `Bearer ${ownerAccessToken}`)
+      .send({})
+      .expect(201);
+
+    const createdPost = createPostResponse.body as {
+      id: string;
+      projectId: string;
+      createdAt: string;
+      updatedAt: string;
+    };
+    expect(createdPost.projectId).toBe(createdProject.id);
+
+    await request(app.getHttpServer())
+      .get(`/api/projects/${createdProject.id}/posts`)
+      .set('Authorization', `Bearer ${ownerAccessToken}`)
+      .expect(200)
+      .expect((res: { body: unknown }) => {
+        const body = res.body as unknown[];
+        expect(Array.isArray(body)).toBe(true);
+        expect(body).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              id: createdPost.id,
+              projectId: createdProject.id,
+            }),
+          ]),
+        );
+      });
   });
 });

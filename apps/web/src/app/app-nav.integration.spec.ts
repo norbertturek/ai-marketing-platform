@@ -61,7 +61,6 @@ describe('App navbar (integration)', () => {
     expect(el.textContent).toContain('Sign in');
     expect(el.textContent).toContain('Sign up');
     expect(el.textContent).not.toContain('Logout');
-    expect(el.textContent).not.toContain('Dashboard');
     expect(el.textContent).not.toContain('Playground');
     expect(el.textContent).not.toContain('Projects');
   });
@@ -74,7 +73,6 @@ describe('App navbar (integration)', () => {
     await fixture.whenStable();
 
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('Dashboard');
     expect(el.textContent).toContain('Playground');
     expect(el.textContent).toContain('Projects');
     expect(el.textContent).toContain('Logout');
