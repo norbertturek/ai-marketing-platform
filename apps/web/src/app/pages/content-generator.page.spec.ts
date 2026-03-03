@@ -61,7 +61,7 @@ describe('ContentGeneratorPage', () => {
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toMatch(/1\s+kredytów/);
-    expect(el.textContent).toMatch(/25\s+kredytów/);
+    expect(el.textContent).toMatch(/5\s+kredytów/);
     expect(el.textContent).toMatch(/50\s+kredytów/);
   });
 

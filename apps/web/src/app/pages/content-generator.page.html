@@ -198,7 +198,6 @@
                   [value]="imagePrompt()"
                   (input)="imagePrompt.set($any($event.target).value)"
                   [class]="textareaClass"
-                  [disabled]="!canGenerateImage()"
                   placeholder="Opis obrazka..."
                   rows="2"
                 ></textarea>
@@ -210,41 +209,34 @@
                   [value]="negativePrompt()"
                   (input)="negativePrompt.set($any($event.target).value)"
                   [class]="textareaClass"
-                  [disabled]="!canGenerateImage()"
                   placeholder="Czego nie chcesz na obrazku..."
                   rows="2"
                 ></textarea>
               </div>
 
-              <div class="grid grid-cols-2 gap-2">
-                <div>
-                  <label class="mb-1.5 block text-xs text-zinc-400">Model</label>
-                  <select
-                    [value]="imageModel()"
-                    (change)="imageModel.set($any($event.target).value)"
-                    [disabled]="!canGenerateImage()"
-                    [class]="inputClass + ' cursor-pointer'"
-                  >
-                    <option value="stable-diffusion-xl">SD XL</option>
-                    <option value="dall-e-3">DALL-E 3</option>
-                    <option value="midjourney">Midjourney</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="mb-1.5 block text-xs text-zinc-400">Style</label>
-                  <select
-                    [value]="imageStyle()"
-                    (change)="imageStyle.set($any($event.target).value)"
-                    [disabled]="!canGenerateImage()"
-                    [class]="inputClass + ' cursor-pointer'"
-                  >
-                    <option value="realistic">Realistic</option>
-                    <option value="artistic">Artistic</option>
-                    <option value="cinematic">Cinematic</option>
-                    <option value="3d">3D Render</option>
-                    <option value="anime">Anime</option>
-                  </select>
-                </div>
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Model (Runware)</label>
+                <select
+                  [value]="imageModel()"
+                  (change)="imageModel.set($any($event.target).value)"
+                  [disabled]="!canGenerateImage()"
+                  [class]="inputClass + ' cursor-pointer'"
+                >
+                  @for (m of runwareImageModels; track m.id) {
+                    <option [value]="m.id">{{ m.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Custom AIR ID (optional)</label>
+                <input
+                  type="text"
+                  [value]="customImageModel()"
+                  (input)="customImageModel.set($any($event.target).value)"
+                  [class]="inputClass"
+                  placeholder="e.g. civitai:123@456"
+                  [disabled]="!canGenerateImage()"
+                />
               </div>
 
               <div>
@@ -263,11 +255,37 @@
               </div>
 
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">CFG Scale: {{ cfgScale() }}</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">Output format</label>
+                <select
+                  [value]="imageOutputFormat()"
+                  (change)="imageOutputFormat.set($any($event.target).value)"
+                  [disabled]="!canGenerateImage()"
+                  [class]="inputClass + ' cursor-pointer'"
+                >
+                  <option value="WEBP">WEBP</option>
+                  <option value="PNG">PNG</option>
+                  <option value="JPG">JPG</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Steps: {{ steps() }}</label>
                 <input
                   type="range"
                   min="1"
-                  max="20"
+                  max="100"
+                  step="1"
+                  [value]="steps()"
+                  (input)="steps.set(+$any($event.target).value)"
+                  [disabled]="!canGenerateImage()"
+                  class="w-full"
+                />
+              </div>
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">CFG Scale: {{ cfgScale() }}</label>
+                <input
+                  type="range"
+                  min="0"
+                  max="50"
                   step="0.5"
                   [value]="cfgScale()"
                   (input)="cfgScale.set(+$any($event.target).value)"
