@@ -41,4 +41,10 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./pages/content-generator.page').then((m) => m.ContentGeneratorPage),
   },
+  {
+    path: 'credits',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/credits.page').then((m) => m.CreditsPage),
+  },
 ];
