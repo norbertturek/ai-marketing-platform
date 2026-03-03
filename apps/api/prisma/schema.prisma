@@ -14,13 +14,27 @@ datasource db {
 }
 
 model User {
-  id               String    @id @default(cuid())
-  email            String    @unique
+  id               String        @id @default(cuid())
+  email            String        @unique
   passwordHash     String
   refreshTokenHash String?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  credits          Int           @default(100)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
   projects         Project[]
+  creditUsages     CreditUsage[]
+}
+
+model CreditUsage {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String   /// e.g. "text_generation", "image_generation"
+  creditsCost Int
+  metadata    Json?    /// { model, promptTokens, completionTokens, totalTokens }
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
 }
 
 model Project {
