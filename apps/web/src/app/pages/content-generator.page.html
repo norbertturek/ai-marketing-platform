@@ -1,46 +1,41 @@
 <div class="dark flex min-h-screen flex-col bg-zinc-950 text-white">
   <!-- Header -->
-  <header
-    class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/50 px-4 py-3 md:px-6"
-  >
+  <header class="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-800/50 px-4 py-3 md:px-6">
     <div class="flex min-w-0 flex-1 items-center gap-3 md:flex-initial md:gap-4">
       @if (projectId(); as pid) {
-        <a
-          [routerLink]="['/project', pid]"
-          class="flex-shrink-0 text-zinc-400 transition-colors hover:text-white"
-          aria-label="Wróć do projektu"
-        >
-          <lucide-icon name="ArrowLeft" class="size-4" aria-hidden="true"></lucide-icon>
-        </a>
+      <a [routerLink]="['/project', pid]" class="flex-shrink-0 text-zinc-400 transition-colors hover:text-white"
+        aria-label="Back to project">
+        <lucide-icon name="ArrowLeft" class="size-4" aria-hidden="true"></lucide-icon>
+      </a>
       }
       <div class="min-w-0">
         <h1 class="truncate text-sm font-medium text-white">{{ projectName() }}</h1>
         <p class="truncate text-xs text-zinc-500">
-          {{ postId()?.startsWith('post-') ? 'Nowy post' : 'Post #' + (postId() ?? '') }}
+          {{ postId()?.startsWith('post-') ? 'New post' : 'Post #' + (postId() ?? '') }}
         </p>
       </div>
     </div>
     <div class="flex flex-shrink-0 items-center gap-2">
       @if (totalUsedCost() > 0) {
-        <div class="hidden items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 sm:flex">
-          <span class="text-xs text-zinc-500">Zużyte</span>
-          <lucide-icon name="Coins" class="size-3.5 text-amber-500"></lucide-icon>
-          <span class="text-xs font-medium text-white">{{ totalUsedCost() }}</span>
-        </div>
+      <div class="hidden items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 sm:flex">
+        <span class="text-xs text-zinc-500">Used</span>
+        <lucide-icon name="Coins" class="size-3.5 text-amber-500"></lucide-icon>
+        <span class="text-xs font-medium text-white">{{ totalUsedCost() }}</span>
+      </div>
       }
       <a [routerLink]="['/credits']" class="hidden md:block">
         <button hlmBtn variant="outline" size="sm" class="border-zinc-800 hover:bg-zinc-800">
           <lucide-icon name="Coins" class="size-4 md:mr-2"></lucide-icon>
-          {{ userCredits().toLocaleString() }} kredytów
+          {{ userCredits().toLocaleString() }} credits
         </button>
       </a>
     </div>
   </header>
 
   @if (errorMessage()) {
-    <div class="border-b border-red-900/50 bg-red-950/20 px-4 py-2 text-sm text-red-300">
-      {{ errorMessage() }}
-    </div>
+  <div class="border-b border-red-900/50 bg-red-950/20 px-4 py-2 text-sm text-red-300">
+    {{ errorMessage() }}
+  </div>
   }
 
   <!-- 3-Column Flow -->
@@ -52,34 +47,28 @@
           <div class="flex max-h-[calc(100vh-180px)] flex-col rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-4">
             <div class="mb-4 flex flex-shrink-0 items-center justify-between">
               <div class="flex items-center gap-2">
-                <span class="flex size-6 items-center justify-center rounded-full bg-white text-xs font-medium text-black">1</span>
-                <h2 class="font-medium text-white">Generuj Tekst</h2>
+                <span
+                  class="flex size-6 items-center justify-center rounded-full bg-white text-xs font-medium text-black">1</span>
+                <h2 class="font-medium text-white">Generate Text</h2>
               </div>
-              <div class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
+              <div
+                class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
                 <lucide-icon name="Coins" class="size-3"></lucide-icon>
-                {{ textCost() }} kredytów
+                {{ textCost() }} credits
               </div>
             </div>
 
             <div class="flex flex-1 flex-col gap-3 overflow-y-auto pr-2">
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Prompt</label>
-                <textarea
-                  [value]="textPrompt()"
-                  (input)="textPrompt.set($any($event.target).value)"
-                  [class]="textareaClass"
-                  placeholder="np. Promuj nową kolekcję jesienną..."
-                  rows="3"
-                ></textarea>
+                <textarea [value]="textPrompt()" (input)="textPrompt.set($any($event.target).value)"
+                  [class]="textareaClass" placeholder="e.g. Promote the new autumn collection..." rows="3"></textarea>
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Model AI</label>
-                <select
-                  [value]="aiModel()"
-                  (change)="aiModel.set($any($event.target).value)"
-                  [class]="inputClass + ' cursor-pointer'"
-                >
+                <select [value]="aiModel()" (change)="aiModel.set($any($event.target).value)"
+                  [class]="inputClass + ' cursor-pointer'">
                   <option value="gpt-4o-mini">GPT-4o Mini</option>
                   <option value="gpt-4o">GPT-4o</option>
                   <option value="gpt-4-turbo">GPT-4 Turbo</option>
@@ -87,86 +76,61 @@
               </div>
 
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Temperature: {{ temperature() | number:'1.2-2' }}</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="2"
-                  step="0.01"
-                  [value]="temperature()"
-                  (input)="temperature.set(+$any($event.target).value)"
-                  class="w-full"
-                />
+                <label class="mb-1.5 block text-xs text-zinc-400">Temperature: {{ temperature() | number:'1.2-2'
+                  }}</label>
+                <input type="range" min="0" max="2" step="0.01" [value]="temperature()"
+                  (input)="temperature.set(+$any($event.target).value)" class="w-full" />
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Max Length: {{ maxLength() }}</label>
-                <input
-                  type="range"
-                  min="50"
-                  max="500"
-                  step="10"
-                  [value]="maxLength()"
-                  (input)="maxLength.set(+$any($event.target).value)"
-                  class="w-full"
-                />
+                <input type="range" min="50" max="500" step="10" [value]="maxLength()"
+                  (input)="maxLength.set(+$any($event.target).value)" class="w-full" />
               </div>
 
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Liczba wariantów</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">Number of variants</label>
                 <div class="flex gap-1 rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-1">
                   @for (n of [1,2,3,4]; track n) {
-                    <button
-                      type="button"
-                      (click)="numTextVariants.set(n)"
-                      class="flex-1 rounded py-1.5 text-xs transition-colors"
-                      [class.bg-zinc-800]="numTextVariants() === n"
-                      [class.text-white]="numTextVariants() === n"
-                      [class.text-zinc-500]="numTextVariants() !== n"
-                      [class.hover:text-zinc-300]="numTextVariants() !== n"
-                    >
-                      {{ n }}
-                    </button>
+                  <button type="button" (click)="numTextVariants.set(n)"
+                    class="flex-1 rounded py-1.5 text-xs transition-colors"
+                    [class.bg-zinc-800]="numTextVariants() === n" [class.text-white]="numTextVariants() === n"
+                    [class.text-zinc-500]="numTextVariants() !== n"
+                    [class.hover:text-zinc-300]="numTextVariants() !== n">
+                    {{ n }}
+                  </button>
                   }
                 </div>
               </div>
 
-              <button
-                hlmBtn
-                type="button"
-                class="w-full bg-white text-black hover:bg-zinc-200"
-                [disabled]="isGeneratingText()"
-                (click)="handleGenerateText()"
-              >
+              <button hlmBtn type="button" class="w-full bg-white text-black hover:bg-zinc-200"
+                [disabled]="isGeneratingText()" (click)="handleGenerateText()">
                 @if (isGeneratingText()) {
-                  Generowanie...
+                Generating...
                 } @else {
-                  <lucide-icon name="Sparkles" class="mr-2 size-4"></lucide-icon>
-                  Generuj tekst
+                <lucide-icon name="Sparkles" class="mr-2 size-4"></lucide-icon>
+                Generate text
                 }
               </button>
             </div>
 
             @if (textVariants().length > 0) {
-              <div class="mt-4 space-y-2">
-                <label class="text-xs text-zinc-400">Wybierz wariant:</label>
-                <div class="max-h-[200px] space-y-2 overflow-y-auto">
-                  @for (text of textVariants(); track $index) {
-                    <div
-                      (click)="selectedTextIndex.set($index)"
-                      class="cursor-pointer rounded-lg border p-3 transition-all"
-                      [class.border-white]="selectedTextIndex() === $index"
-                      [class.bg-zinc-800/50]="selectedTextIndex() === $index"
-                      [class.border-zinc-800]="selectedTextIndex() !== $index"
-                      [class.bg-black/30]="selectedTextIndex() !== $index"
-                      [class.hover:border-zinc-700]="selectedTextIndex() !== $index"
-                    >
-                      <span class="text-xs text-zinc-500">Wariant {{ $index + 1 }}</span>
-                      <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-zinc-300">{{ text }}</p>
-                    </div>
-                  }
+            <div class="mt-4 space-y-2">
+              <label class="text-xs text-zinc-400">Choose a variant:</label>
+              <div class="max-h-[200px] space-y-2 overflow-y-auto">
+                @for (text of textVariants(); track $index) {
+                <div (click)="selectedTextIndex.set($index)" class="cursor-pointer rounded-lg border p-3 transition-all"
+                  [class.border-white]="selectedTextIndex() === $index"
+                  [class.bg-zinc-800/50]="selectedTextIndex() === $index"
+                  [class.border-zinc-800]="selectedTextIndex() !== $index"
+                  [class.bg-black/30]="selectedTextIndex() !== $index"
+                  [class.hover:border-zinc-700]="selectedTextIndex() !== $index">
+                  <span class="text-xs text-zinc-500">Variant {{ $index + 1 }}</span>
+                  <p class="mt-1 line-clamp-3 whitespace-pre-wrap text-xs text-zinc-300">{{ text }}</p>
                 </div>
+                }
               </div>
+            </div>
             }
           </div>
 
@@ -174,94 +138,64 @@
           <div class="flex max-h-[calc(100vh-180px)] flex-col rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-4">
             <div class="mb-4 flex flex-shrink-0 items-center justify-between">
               <div class="flex items-center gap-2">
-                <span
-                  class="flex size-6 items-center justify-center rounded-full text-xs font-medium"
-                  [class.bg-white]="canGenerateImage()"
-                  [class.text-black]="canGenerateImage()"
-                  [class.bg-zinc-800]="!canGenerateImage()"
-                  [class.text-zinc-500]="!canGenerateImage()"
-                >
+                <span class="flex size-6 items-center justify-center rounded-full text-xs font-medium"
+                  [class.bg-white]="canGenerateImage()" [class.text-black]="canGenerateImage()"
+                  [class.bg-zinc-800]="!canGenerateImage()" [class.text-zinc-500]="!canGenerateImage()">
                   2
                 </span>
-                <h2 class="font-medium text-white">Generuj Obrazek</h2>
+                <h2 class="font-medium text-white">Generate Image</h2>
               </div>
-              <div class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
+              <div
+                class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
                 <lucide-icon name="Coins" class="size-3"></lucide-icon>
-                {{ imageCost() }} kredytów
+                {{ imageCost() }} credits
               </div>
             </div>
 
             <div class="flex flex-1 flex-col gap-3 overflow-y-auto pr-2">
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Image Prompt</label>
-                <textarea
-                  [value]="imagePrompt()"
-                  (input)="imagePrompt.set($any($event.target).value)"
-                  [class]="textareaClass"
-                  placeholder="Opis obrazka..."
-                  rows="2"
-                ></textarea>
+                <textarea [value]="imagePrompt()" (input)="imagePrompt.set($any($event.target).value)"
+                  [class]="textareaClass" placeholder="Image description..." rows="2"></textarea>
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Negative Prompt</label>
-                <textarea
-                  [value]="negativePrompt()"
-                  (input)="negativePrompt.set($any($event.target).value)"
-                  [class]="textareaClass"
-                  placeholder="Czego nie chcesz na obrazku..."
-                  rows="2"
-                ></textarea>
+                <textarea [value]="negativePrompt()" (input)="negativePrompt.set($any($event.target).value)"
+                  [class]="textareaClass" placeholder="What you don't want in the image..." rows="2"></textarea>
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Model (Runware)</label>
-                <select
-                  [value]="imageModel()"
-                  (change)="imageModel.set($any($event.target).value)"
-                  [disabled]="!canGenerateImage()"
-                  [class]="inputClass + ' cursor-pointer'"
-                >
+                <select [value]="imageModel()" (change)="imageModel.set($any($event.target).value)"
+                  [disabled]="!canGenerateImage()" [class]="inputClass + ' cursor-pointer'">
                   @for (m of runwareImageModels; track m.id) {
-                    <option [value]="m.id">{{ m.label }}</option>
+                  <option [value]="m.id">{{ m.label }}</option>
                   }
                 </select>
               </div>
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Custom AIR ID (optional)</label>
-                <input
-                  type="text"
-                  [value]="customImageModel()"
-                  (input)="customImageModel.set($any($event.target).value)"
-                  [class]="inputClass"
-                  placeholder="e.g. civitai:123@456"
-                  [disabled]="!canGenerateImage()"
-                />
+                <input type="text" [value]="customImageModel()"
+                  (input)="customImageModel.set($any($event.target).value)" [class]="inputClass"
+                  placeholder="e.g. civitai:123@456" [disabled]="!canGenerateImage()" />
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Aspect Ratio</label>
-                <select
-                  [value]="aspectRatio()"
-                  (change)="aspectRatio.set($any($event.target).value)"
-                  [disabled]="!canGenerateImage()"
-                  [class]="inputClass + ' cursor-pointer'"
-                >
-                  <option value="1:1">1:1 (Kwadrat)</option>
-                  <option value="16:9">16:9 (Poziomy)</option>
-                  <option value="9:16">9:16 (Pionowy)</option>
+                <select [value]="aspectRatio()" (change)="aspectRatio.set($any($event.target).value)"
+                  [disabled]="!canGenerateImage()" [class]="inputClass + ' cursor-pointer'">
+                  <option value="1:1">1:1 (Square)</option>
+                  <option value="16:9">16:9 (Horizontal)</option>
+                  <option value="9:16">9:16 (Vertical)</option>
                   <option value="4:5">4:5 (Portrait)</option>
                 </select>
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Output format</label>
-                <select
-                  [value]="imageOutputFormat()"
-                  (change)="imageOutputFormat.set($any($event.target).value)"
-                  [disabled]="!canGenerateImage()"
-                  [class]="inputClass + ' cursor-pointer'"
-                >
+                <select [value]="imageOutputFormat()" (change)="imageOutputFormat.set($any($event.target).value)"
+                  [disabled]="!canGenerateImage()" [class]="inputClass + ' cursor-pointer'">
                   <option value="WEBP">WEBP</option>
                   <option value="PNG">PNG</option>
                   <option value="JPG">JPG</option>
@@ -269,108 +203,68 @@
               </div>
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Steps: {{ steps() }}</label>
-                <input
-                  type="range"
-                  min="1"
-                  max="100"
-                  step="1"
-                  [value]="steps()"
-                  (input)="steps.set(+$any($event.target).value)"
-                  [disabled]="!canGenerateImage()"
-                  class="w-full"
-                />
+                <input type="range" min="1" max="100" step="1" [value]="steps()"
+                  (input)="steps.set(+$any($event.target).value)" [disabled]="!canGenerateImage()" class="w-full" />
               </div>
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">CFG Scale: {{ cfgScale() }}</label>
-                <input
-                  type="range"
-                  min="0"
-                  max="50"
-                  step="0.5"
-                  [value]="cfgScale()"
-                  (input)="cfgScale.set(+$any($event.target).value)"
-                  [disabled]="!canGenerateImage()"
-                  class="w-full"
-                />
+                <input type="range" min="0" max="50" step="0.5" [value]="cfgScale()"
+                  (input)="cfgScale.set(+$any($event.target).value)" [disabled]="!canGenerateImage()" class="w-full" />
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Liczba wariantów</label>
                 <div class="flex gap-1 rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-1">
                   @for (n of [1,2,3,4]; track n) {
-                    <button
-                      type="button"
-                      (click)="numImageVariants.set(n)"
-                      [disabled]="!canGenerateImage()"
-                      class="flex-1 rounded py-1.5 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      [class.bg-zinc-800]="numImageVariants() === n"
-                      [class.text-white]="numImageVariants() === n"
-                      [class.text-zinc-500]="numImageVariants() !== n"
-                      [class.hover:text-zinc-300]="numImageVariants() !== n"
-                    >
-                      {{ n }}
-                    </button>
+                  <button type="button" (click)="numImageVariants.set(n)" [disabled]="!canGenerateImage()"
+                    class="flex-1 rounded py-1.5 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    [class.bg-zinc-800]="numImageVariants() === n" [class.text-white]="numImageVariants() === n"
+                    [class.text-zinc-500]="numImageVariants() !== n"
+                    [class.hover:text-zinc-300]="numImageVariants() !== n">
+                    {{ n }}
+                  </button>
                   }
                 </div>
               </div>
 
-              <input
-                #fileInput
-                type="file"
-                accept="image/*"
-                (change)="onImageUpload($event)"
-                class="hidden"
-              />
-              <button
-                hlmBtn
-                variant="outline"
-                size="sm"
-                type="button"
-                class="w-full border-zinc-800 hover:bg-zinc-800 text-white"
-                [disabled]="!canGenerateImage()"
-                (click)="fileInput.click()"
-              >
+              <input #fileInput type="file" accept="image/*" (change)="onImageUpload($event)" class="hidden" />
+              <button hlmBtn variant="outline" size="sm" type="button"
+                class="w-full border-zinc-800 hover:bg-zinc-800 text-white" [disabled]="!canGenerateImage()"
+                (click)="fileInput.click()">
                 <lucide-icon name="Upload" class="mr-2 size-3"></lucide-icon>
-                Lub prześlij własny obrazek
+                Or upload your own image
               </button>
 
-              <button
-                hlmBtn
-                type="button"
-                class="w-full bg-white text-black hover:bg-zinc-200"
-                [disabled]="isGeneratingImage() || !canGenerateImage()"
-                (click)="handleGenerateImage()"
-              >
+              <button hlmBtn type="button" class="w-full bg-white text-black hover:bg-zinc-200"
+                [disabled]="isGeneratingImage() || !canGenerateImage()" (click)="handleGenerateImage()">
                 @if (isGeneratingImage()) {
-                  Generowanie...
+                Generating...
                 } @else {
-                  <lucide-icon name="Image" class="mr-2 size-4"></lucide-icon>
-                  Generuj obrazek
+                <lucide-icon name="Image" class="mr-2 size-4"></lucide-icon>
+                Generate image
                 }
               </button>
 
               @if (imageVariants().length > 0) {
-                <div class="mt-4 space-y-2">
-                  <label class="text-xs text-zinc-400">Wybierz wariant:</label>
-                  <div class="grid grid-cols-2 gap-2">
-                    @for (img of imageVariants(); track $index) {
-                      <div
-                        (click)="selectedImageIndex.set($index)"
-                        class="relative aspect-square cursor-pointer overflow-hidden rounded-lg border transition-all"
-                        [class.border-white]="selectedImageIndex() === $index"
-                        [class.ring-2]="selectedImageIndex() === $index"
-                        [class.ring-white]="selectedImageIndex() === $index"
-                        [class.border-zinc-800]="selectedImageIndex() !== $index"
-                        [class.hover:border-zinc-700]="selectedImageIndex() !== $index"
-                      >
-                        <img [src]="img" [alt]="'Wariant ' + ($index + 1)" class="size-full object-cover" />
-                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                          <span class="text-xs text-white">Wariant {{ $index + 1 }}</span>
-                        </div>
-                      </div>
-                    }
+              <div class="mt-4 space-y-2">
+                <label class="text-xs text-zinc-400">Choose a variant:</label>
+                <div class="grid grid-cols-2 gap-2">
+                  @for (img of imageVariants(); track $index) {
+                  <div (click)="selectedImageIndex.set($index)"
+                    class="relative aspect-square cursor-pointer overflow-hidden rounded-lg border transition-all"
+                    [class.border-white]="selectedImageIndex() === $index"
+                    [class.ring-2]="selectedImageIndex() === $index"
+                    [class.ring-white]="selectedImageIndex() === $index"
+                    [class.border-zinc-800]="selectedImageIndex() !== $index"
+                    [class.hover:border-zinc-700]="selectedImageIndex() !== $index">
+                    <img [src]="img" [alt]="'Variant ' + ($index + 1)" class="size-full object-cover" />
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                      <span class="text-xs text-white">Variant {{ $index + 1 }}</span>
+                    </div>
                   </div>
+                  }
                 </div>
+              </div>
               }
             </div>
           </div>
@@ -379,18 +273,15 @@
           <div class="flex max-h-[calc(100vh-180px)] flex-col rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-4">
             <div class="mb-4 flex flex-shrink-0 items-center justify-between">
               <div class="flex items-center gap-2">
-                <span
-                  class="flex size-6 items-center justify-center rounded-full text-xs font-medium"
-                  [class.bg-white]="canGenerateVideo()"
-                  [class.text-black]="canGenerateVideo()"
-                  [class.bg-zinc-800]="!canGenerateVideo()"
-                  [class.text-zinc-500]="!canGenerateVideo()"
-                >
+                <span class="flex size-6 items-center justify-center rounded-full text-xs font-medium"
+                  [class.bg-white]="canGenerateVideo()" [class.text-black]="canGenerateVideo()"
+                  [class.bg-zinc-800]="!canGenerateVideo()" [class.text-zinc-500]="!canGenerateVideo()">
                   3
                 </span>
-                <h2 class="font-medium text-white">Generuj Video</h2>
+                <h2 class="font-medium text-white">Generate Video</h2>
               </div>
-              <div class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
+              <div
+                class="inline-flex items-center gap-1.5 rounded-md border border-amber-500/20 bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-500">
                 <lucide-icon name="Coins" class="size-3"></lucide-icon>
                 {{ videoCost() }} kredytów
               </div>
@@ -399,13 +290,9 @@
             <div class="flex flex-1 flex-col gap-3 overflow-y-auto pr-2">
               <div class="grid grid-cols-2 gap-2">
                 <div>
-                  <label class="mb-1.5 block text-xs text-zinc-400">Długość</label>
-                  <select
-                    [value]="videoDuration()"
-                    (change)="videoDuration.set($any($event.target).value)"
-                    [disabled]="!canGenerateVideo()"
-                    [class]="inputClass + ' cursor-pointer'"
-                  >
+                  <label class="mb-1.5 block text-xs text-zinc-400">Duration</label>
+                  <select [value]="videoDuration()" (change)="videoDuration.set($any($event.target).value)"
+                    [disabled]="!canGenerateVideo()" [class]="inputClass + ' cursor-pointer'">
                     <option value="3">3s</option>
                     <option value="5">5s</option>
                     <option value="10">10s</option>
@@ -413,12 +300,8 @@
                 </div>
                 <div>
                   <label class="mb-1.5 block text-xs text-zinc-400">FPS</label>
-                  <select
-                    [value]="fps()"
-                    (change)="fps.set($any($event.target).value)"
-                    [disabled]="!canGenerateVideo()"
-                    [class]="inputClass + ' cursor-pointer'"
-                  >
+                  <select [value]="fps()" (change)="fps.set($any($event.target).value)" [disabled]="!canGenerateVideo()"
+                    [class]="inputClass + ' cursor-pointer'">
                     <option value="24">24 FPS</option>
                     <option value="30">30 FPS</option>
                     <option value="60">60 FPS</option>
@@ -428,12 +311,8 @@
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Motion Intensity</label>
-                <select
-                  [value]="motionIntensity()"
-                  (change)="motionIntensity.set($any($event.target).value)"
-                  [disabled]="!canGenerateVideo()"
-                  [class]="inputClass + ' cursor-pointer'"
-                >
+                <select [value]="motionIntensity()" (change)="motionIntensity.set($any($event.target).value)"
+                  [disabled]="!canGenerateVideo()" [class]="inputClass + ' cursor-pointer'">
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
@@ -442,12 +321,8 @@
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Camera Movement</label>
-                <select
-                  [value]="cameraMovement()"
-                  (change)="cameraMovement.set($any($event.target).value)"
-                  [disabled]="!canGenerateVideo()"
-                  [class]="inputClass + ' cursor-pointer'"
-                >
+                <select [value]="cameraMovement()" (change)="cameraMovement.set($any($event.target).value)"
+                  [disabled]="!canGenerateVideo()" [class]="inputClass + ' cursor-pointer'">
                   <option value="static">Static</option>
                   <option value="pan">Pan</option>
                   <option value="zoom">Zoom</option>
@@ -456,74 +331,57 @@
               </div>
 
               <div class="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="loop"
-                  [checked]="loopVideo()"
-                  (change)="loopVideo.set($any($event.target).checked)"
-                  [disabled]="!canGenerateVideo()"
-                  class="size-4 rounded border-zinc-700"
-                />
+                <input type="checkbox" id="loop" [checked]="loopVideo()"
+                  (change)="loopVideo.set($any($event.target).checked)" [disabled]="!canGenerateVideo()"
+                  class="size-4 rounded border-zinc-700" />
                 <label for="loop" class="cursor-pointer text-xs text-zinc-400">Loop video</label>
               </div>
 
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Liczba wariantów</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">Number of variants</label>
                 <div class="flex gap-1 rounded-lg border border-zinc-800/50 bg-zinc-900/50 p-1">
                   @for (n of [1,2,3,4]; track n) {
-                    <button
-                      type="button"
-                      (click)="numVideoVariants.set(n)"
-                      [disabled]="!canGenerateVideo()"
-                      class="flex-1 rounded py-1.5 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                      [class.bg-zinc-800]="numVideoVariants() === n"
-                      [class.text-white]="numVideoVariants() === n"
-                      [class.text-zinc-500]="numVideoVariants() !== n"
-                      [class.hover:text-zinc-300]="numVideoVariants() !== n"
-                    >
-                      {{ n }}
-                    </button>
+                  <button type="button" (click)="numVideoVariants.set(n)" [disabled]="!canGenerateVideo()"
+                    class="flex-1 rounded py-1.5 text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    [class.bg-zinc-800]="numVideoVariants() === n" [class.text-white]="numVideoVariants() === n"
+                    [class.text-zinc-500]="numVideoVariants() !== n"
+                    [class.hover:text-zinc-300]="numVideoVariants() !== n">
+                    {{ n }}
+                  </button>
                   }
                 </div>
               </div>
 
-              <button
-                hlmBtn
-                type="button"
-                class="w-full bg-white text-black hover:bg-zinc-200"
-                [disabled]="isGeneratingVideo() || !canGenerateVideo()"
-                (click)="handleGenerateVideo()"
-              >
+              <button hlmBtn type="button" class="w-full bg-white text-black hover:bg-zinc-200"
+                [disabled]="isGeneratingVideo() || !canGenerateVideo()" (click)="handleGenerateVideo()">
                 @if (isGeneratingVideo()) {
-                  Generowanie...
+                Generating...
                 } @else {
-                  <lucide-icon name="Video" class="mr-2 size-4"></lucide-icon>
-                  Generuj wideo
+                <lucide-icon name="Video" class="mr-2 size-4"></lucide-icon>
+                Generate video
                 }
               </button>
 
               @if (videoVariants().length > 0) {
-                <div class="mt-4 space-y-2">
-                  <label class="text-xs text-zinc-400">Wybierz wariant:</label>
-                  <div class="grid grid-cols-2 gap-2">
-                    @for (video of videoVariants(); track $index) {
-                      <div
-                        (click)="selectedVideoIndex.set($index)"
-                        class="relative aspect-square cursor-pointer overflow-hidden rounded-lg border transition-all"
-                        [class.border-white]="selectedVideoIndex() === $index"
-                        [class.ring-2]="selectedVideoIndex() === $index"
-                        [class.ring-white]="selectedVideoIndex() === $index"
-                        [class.border-zinc-800]="selectedVideoIndex() !== $index"
-                        [class.hover:border-zinc-700]="selectedVideoIndex() !== $index"
-                      >
-                        <video [src]="video" class="size-full object-cover" muted loop autoplay></video>
-                        <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-                          <span class="text-xs text-white">Wariant {{ $index + 1 }}</span>
-                        </div>
-                      </div>
-                    }
+              <div class="mt-4 space-y-2">
+                <label class="text-xs text-zinc-400">Choose a variant:</label>
+                <div class="grid grid-cols-2 gap-2">
+                  @for (video of videoVariants(); track $index) {
+                  <div (click)="selectedVideoIndex.set($index)"
+                    class="relative aspect-square cursor-pointer overflow-hidden rounded-lg border transition-all"
+                    [class.border-white]="selectedVideoIndex() === $index"
+                    [class.ring-2]="selectedVideoIndex() === $index"
+                    [class.ring-white]="selectedVideoIndex() === $index"
+                    [class.border-zinc-800]="selectedVideoIndex() !== $index"
+                    [class.hover:border-zinc-700]="selectedVideoIndex() !== $index">
+                    <video [src]="video" class="size-full object-cover" muted loop autoplay></video>
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2">
+                      <span class="text-xs text-white">Variant {{ $index + 1 }}</span>
+                    </div>
                   </div>
+                  }
                 </div>
+              </div>
               }
             </div>
           </div>
@@ -534,169 +392,140 @@
 
   <!-- Preview Drawer (slides up from bottom) -->
   @if (hasContent()) {
-    <div
-      class="fixed inset-0 z-40 transition-opacity duration-300 ease-out"
-      [class.invisible]="!isPreviewOpen()"
-      [class.opacity-0]="!isPreviewOpen()"
-      [class.visible]="isPreviewOpen()"
-      [class.opacity-100]="isPreviewOpen()"
-      [class.pointer-events-none]="!isPreviewOpen()"
-      (click)="isPreviewOpen.set(false)"
-    >
-      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true"></div>
-    </div>
-    <div
-      class="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border-t border-zinc-800/50 bg-zinc-900/95 shadow-2xl backdrop-blur-sm transition-transform duration-300 ease-out"
-      [class.translate-y-full]="!isPreviewOpen()"
-      [class.translate-y-0]="isPreviewOpen()"
-      role="dialog"
-      aria-label="Preview i publikacja"
-      (click)="$event.stopPropagation()"
-    >
-      <div class="sticky top-0 z-10 border-b border-zinc-800/50 bg-zinc-900/95 p-3 backdrop-blur-sm md:p-4">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
-              <h3 class="hidden font-medium text-white sm:block">Preview & Share</h3>
-              <h3 class="font-medium text-white sm:hidden">Preview</h3>
-              <select
-                [value]="platform()"
-                (change)="handlePlatformChange($any($event.target).value)"
-                class="h-7 w-28 cursor-pointer rounded border border-zinc-800 bg-zinc-900/50 text-xs text-white md:w-32"
-              >
-                <option value="facebook">Facebook</option>
-                <option value="instagram">Instagram</option>
-                <option value="linkedin">LinkedIn</option>
-                <option value="twitter">Twitter</option>
-                <option value="tiktok">TikTok</option>
-              </select>
-            </div>
-            <button
-              hlmBtn
-              variant="ghost"
-              size="sm"
-              class="text-zinc-400 hover:text-white"
-              (click)="isPreviewOpen.set(false)"
-            >
-              <lucide-icon name="ChevronDown" class="size-4 md:mr-1"></lucide-icon>
-              Ukryj
-            </button>
-          </div>
+  <div class="fixed inset-0 z-40 transition-opacity duration-300 ease-out" [class.invisible]="!isPreviewOpen()"
+    [class.opacity-0]="!isPreviewOpen()" [class.visible]="isPreviewOpen()" [class.opacity-100]="isPreviewOpen()"
+    [class.pointer-events-none]="!isPreviewOpen()" (click)="isPreviewOpen.set(false)">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" aria-hidden="true"></div>
+  </div>
+  <div
+    class="fixed bottom-0 left-0 right-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-xl border-t border-zinc-800/50 bg-zinc-900/95 shadow-2xl backdrop-blur-sm transition-transform duration-300 ease-out"
+    [class.translate-y-full]="!isPreviewOpen()" [class.translate-y-0]="isPreviewOpen()" role="dialog"
+    aria-label="Preview and Publish" (click)="$event.stopPropagation()">
+    <div class="sticky top-0 z-10 border-b border-zinc-800/50 bg-zinc-900/95 p-3 backdrop-blur-sm md:p-4">
+      <div class="flex items-center justify-between gap-2">
+        <div class="flex min-w-0 flex-1 items-center gap-2 md:gap-3">
+          <h3 class="hidden font-medium text-white sm:block">Preview & Share</h3>
+          <h3 class="font-medium text-white sm:hidden">Preview</h3>
+          <select [value]="platform()" (change)="handlePlatformChange($any($event.target).value)"
+            class="h-7 w-28 cursor-pointer rounded border border-zinc-800 bg-zinc-900/50 text-xs text-white md:w-32">
+            <option value="facebook">Facebook</option>
+            <option value="instagram">Instagram</option>
+            <option value="linkedin">LinkedIn</option>
+            <option value="twitter">Twitter</option>
+            <option value="tiktok">TikTok</option>
+          </select>
         </div>
+        <button hlmBtn variant="ghost" size="sm" class="text-zinc-400 hover:text-white"
+          (click)="isPreviewOpen.set(false)">
+          <lucide-icon name="ChevronDown" class="size-4 md:mr-1"></lucide-icon>
+          Hide
+        </button>
+      </div>
+    </div>
 
-        <div class="p-3 md:p-4">
-          <div class="mx-auto flex max-w-6xl flex-col items-start gap-4 lg:flex-row lg:gap-6">
-            <!-- Preview Card -->
-            <div class="flex-1">
-              @if (platform() === 'instagram') {
-                <div class="mx-auto max-w-md opacity-95">
-                  <div class="overflow-hidden rounded-lg border border-zinc-800/50 bg-zinc-900/70">
-                    <div class="flex items-center gap-2 border-b border-zinc-800/50 p-3">
-                      <div class="size-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500"></div>
-                      <div class="flex-1">
-                        <p class="text-sm font-medium text-white">your_brand</p>
-                        <p class="text-xs text-zinc-500">Sponsored</p>
-                      </div>
-                    </div>
-                    @if (selectedVideo() || selectedImage()) {
-                      <div class="aspect-square bg-black">
-                        @if (selectedVideo()) {
-                          <video [src]="selectedVideo()" class="size-full object-cover" controls></video>
-                        } @else if (selectedImage()) {
-                          <img [src]="selectedImage()" alt="Post" class="size-full object-cover" />
-                        }
-                      </div>
-                    }
-                    <div class="p-3">
-                      <p class="whitespace-pre-wrap text-sm text-white">{{ selectedText() }}</p>
-                    </div>
-                  </div>
+    <div class="p-3 md:p-4">
+      <div class="mx-auto flex max-w-6xl flex-col items-start gap-4 lg:flex-row lg:gap-6">
+        <!-- Preview Card -->
+        <div class="flex-1">
+          @if (platform() === 'instagram') {
+          <div class="mx-auto max-w-md opacity-95">
+            <div class="overflow-hidden rounded-lg border border-zinc-800/50 bg-zinc-900/70">
+              <div class="flex items-center gap-2 border-b border-zinc-800/50 p-3">
+                <div class="size-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500"></div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-white">your_brand</p>
+                  <p class="text-xs text-zinc-500">Sponsored</p>
                 </div>
+              </div>
+              @if (selectedVideo() || selectedImage()) {
+              <div class="aspect-square bg-black">
+                @if (selectedVideo()) {
+                <video [src]="selectedVideo()" class="size-full object-cover" controls></video>
+                } @else if (selectedImage()) {
+                <img [src]="selectedImage()" alt="Post" class="size-full object-cover" />
+                }
+              </div>
               }
-              @if (platform() === 'facebook' || platform() === 'twitter' || platform() === 'linkedin') {
-                <div class="mx-auto max-w-2xl rounded-lg border border-zinc-800/50 bg-zinc-900/70 opacity-95">
-                  <div class="border-b border-zinc-800/50 p-4">
-                    <p class="whitespace-pre-wrap text-sm text-white">{{ selectedText() }}</p>
-                  </div>
-                  @if (selectedVideo() || selectedImage()) {
-                    <div class="bg-black">
-                      @if (selectedVideo()) {
-                        <video [src]="selectedVideo()" class="h-auto w-full" controls></video>
-                      } @else if (selectedImage()) {
-                        <img [src]="selectedImage()" alt="Post" class="h-auto w-full" />
-                      }
-                    </div>
-                  }
-                </div>
-              }
-              @if (platform() === 'tiktok') {
-                <div class="mx-auto max-w-xs opacity-95">
-                  <div class="overflow-hidden rounded-lg border border-zinc-800/50 bg-zinc-900/70">
-                    <div class="relative aspect-[9/16] bg-black">
-                      @if (selectedVideo()) {
-                        <video [src]="selectedVideo()" class="size-full object-cover" controls></video>
-                      } @else if (selectedImage()) {
-                        <img [src]="selectedImage()" alt="Post" class="size-full object-cover" />
-                      }
-                      <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-                        <p class="font-medium text-white">&#64;yourbrand</p>
-                        <p class="mt-1 line-clamp-3 text-xs text-white">{{ selectedText() }}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-
-            <!-- Share -->
-            <div class="w-80 self-start">
-              <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/95 p-4 backdrop-blur-sm">
-                <label class="mb-2 block text-xs text-zinc-400">Platformy do publikacji:</label>
-                <div class="flex flex-wrap gap-2">
-                  @for (p of platformsList; track p) {
-                    <button
-                      type="button"
-                      (click)="togglePlatform(p)"
-                      class="rounded-lg border px-3 py-1.5 text-xs capitalize transition-all"
-                      [class.border-white]="selectedPlatforms().includes(p)"
-                      [class.bg-white]="selectedPlatforms().includes(p)"
-                      [class.text-black]="selectedPlatforms().includes(p)"
-                      [class.border-zinc-800]="!selectedPlatforms().includes(p)"
-                      [class.hover:border-zinc-700]="!selectedPlatforms().includes(p)"
-                      [class.text-zinc-300]="!selectedPlatforms().includes(p)"
-                    >
-                      {{ p }}
-                    </button>
-                  }
-                </div>
-                <button
-                  hlmBtn
-                  type="button"
-                  class="mt-4 w-full bg-white text-black hover:bg-zinc-200"
-                  [disabled]="selectedPlatforms().length === 0"
-                  (click)="handleShare()"
-                >
-                  <lucide-icon name="Share2" class="mr-2 size-4"></lucide-icon>
-                  Publikuj {{ selectedPlatforms().length > 0 ? '(' + selectedPlatforms().length + ')' : '' }}
-                </button>
+              <div class="p-3">
+                <p class="whitespace-pre-wrap text-sm text-white">{{ selectedText() }}</p>
               </div>
             </div>
           </div>
+          }
+          @if (platform() === 'facebook' || platform() === 'twitter' || platform() === 'linkedin') {
+          <div class="mx-auto max-w-2xl rounded-lg border border-zinc-800/50 bg-zinc-900/70 opacity-95">
+            <div class="border-b border-zinc-800/50 p-4">
+              <p class="whitespace-pre-wrap text-sm text-white">{{ selectedText() }}</p>
+            </div>
+            @if (selectedVideo() || selectedImage()) {
+            <div class="bg-black">
+              @if (selectedVideo()) {
+              <video [src]="selectedVideo()" class="h-auto w-full" controls></video>
+              } @else if (selectedImage()) {
+              <img [src]="selectedImage()" alt="Post" class="h-auto w-full" />
+              }
+            </div>
+            }
+          </div>
+          }
+          @if (platform() === 'tiktok') {
+          <div class="mx-auto max-w-xs opacity-95">
+            <div class="overflow-hidden rounded-lg border border-zinc-800/50 bg-zinc-900/70">
+              <div class="relative aspect-[9/16] bg-black">
+                @if (selectedVideo()) {
+                <video [src]="selectedVideo()" class="size-full object-cover" controls></video>
+                } @else if (selectedImage()) {
+                <img [src]="selectedImage()" alt="Post" class="size-full object-cover" />
+                }
+                <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
+                  <p class="font-medium text-white">&#64;yourbrand</p>
+                  <p class="mt-1 line-clamp-3 text-xs text-white">{{ selectedText() }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          }
         </div>
+
+        <!-- Share -->
+        <div class="w-80 self-start">
+          <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/95 p-4 backdrop-blur-sm">
+            <label class="mb-2 block text-xs text-zinc-400">Publish platforms:</label>
+            <div class="flex flex-wrap gap-2">
+              @for (p of platformsList; track p) {
+              <button type="button" (click)="togglePlatform(p)"
+                class="rounded-lg border px-3 py-1.5 text-xs capitalize transition-all"
+                [class.border-white]="selectedPlatforms().includes(p)"
+                [class.bg-white]="selectedPlatforms().includes(p)" [class.text-black]="selectedPlatforms().includes(p)"
+                [class.border-zinc-800]="!selectedPlatforms().includes(p)"
+                [class.hover:border-zinc-700]="!selectedPlatforms().includes(p)"
+                [class.text-zinc-300]="!selectedPlatforms().includes(p)">
+                {{ p }}
+              </button>
+              }
+            </div>
+            <button hlmBtn type="button" class="mt-4 w-full bg-white text-black hover:bg-zinc-200"
+              [disabled]="selectedPlatforms().length === 0" (click)="handleShare()">
+              <lucide-icon name="Share2" class="mr-2 size-4"></lucide-icon>
+              Publish {{ selectedPlatforms().length > 0 ? '(' + selectedPlatforms().length + ')' : '' }}
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
+  </div>
   }
 
   <!-- Floating Preview Button -->
   @if (hasContent() && !isPreviewOpen()) {
-    <button
-      type="button"
-      (click)="isPreviewOpen.set(true)"
-      class="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-white p-4 text-black shadow-2xl transition-all hover:bg-zinc-100"
-    >
-      <lucide-icon name="FileText" class="size-5" aria-hidden="true"></lucide-icon>
-      <span class="pr-1 text-sm font-medium">Zobacz Preview</span>
-      <span class="absolute -right-1 -top-1 flex size-6 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
-        {{ contentCount() }}
-      </span>
-    </button>
+  <button type="button" (click)="isPreviewOpen.set(true)"
+    class="fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-3 rounded-full bg-white p-4 text-black shadow-2xl transition-all hover:bg-zinc-100">
+    <lucide-icon name="FileText" class="size-5" aria-hidden="true"></lucide-icon>
+    <span class="pr-1 text-sm font-medium">View Preview</span>
+    <span
+      class="absolute -right-1 -top-1 flex size-6 items-center justify-center rounded-full bg-green-500 text-xs font-bold text-white">
+      {{ contentCount() }}
+    </span>
+  </button>
   }
 </div>

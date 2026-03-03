@@ -1,10 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  inject,
-  OnInit,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
@@ -33,12 +27,12 @@ import { CreditsApiService } from '../core/credits/credits-api.service';
             <lucide-icon name="Coins" class="size-6 text-amber-500"></lucide-icon>
           </div>
           <h1 class="text-xl md:text-2xl font-medium text-white mb-2">AI Marketing Platform</h1>
-          <p class="text-xs md:text-sm text-zinc-500">Twoje kredyty AI</p>
+          <p class="text-xs md:text-sm text-zinc-500">Your AI Credits</p>
         </div>
 
         <div class="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 space-y-6">
           <div class="flex items-center justify-between">
-            <span class="text-sm text-zinc-400">Dostępne kredyty</span>
+            <span class="text-sm text-zinc-400">Available Credits</span>
             @if (loading()) {
               <span class="text-2xl font-semibold text-zinc-500">...</span>
             } @else {
@@ -49,15 +43,11 @@ import { CreditsApiService } from '../core/credits/credits-api.service';
           </div>
 
           <p class="text-xs text-zinc-500">
-            Kredyty są używane do generowania treści tekstowych, obrazów i wideo w Playground.
+            Credits are used to generate text, images, and video in the Playground.
           </p>
 
-          <a
-            routerLink="/playground"
-            hlmBtn
-            class="w-full bg-white text-black hover:bg-zinc-200"
-          >
-            Wróć do Playground
+          <a routerLink="/playground" hlmBtn class="w-full bg-white text-black hover:bg-zinc-200">
+            Back to Playground
           </a>
         </div>
       </div>
