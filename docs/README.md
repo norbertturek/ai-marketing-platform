@@ -4,8 +4,11 @@ This folder contains project documentation for product, architecture, developmen
 
 ## Index
 
-- `architecture.md` - current system architecture (source of truth for high-level design)
-- `adr/README.md` - Architecture Decision Records process and template
+- `architecture.md` — current system architecture (source of truth for high-level design)
+- `adr/README.md` — Architecture Decision Records process and template
+- `railway-deploy.md` — Railway deployment (API + web services)
+- `ui/styleguide.md` — UI patterns for auth, cards, forms
+- `apps/api/.env.example` — canonical env key list (required/optional)
 
 ## Planned Documents
 

@@ -26,11 +26,11 @@ ng serve                        # dev server on port 4200
 
 **Backend (`apps/api`) — run from that directory or via filter:**
 ```bash
-pnpm --filter api test               # run Jest unit tests
-pnpm --filter api test:e2e           # run e2e tests
-pnpm --filter api test -- --testPathPattern=auth  # run a specific test file
-pnpm --filter api prisma:migrate     # run Prisma migrations (dev)
-pnpm --filter api prisma:generate    # regenerate Prisma client after schema changes
+pnpm --filter api test -- --watchAll=false        # run Jest unit tests (no watch)
+pnpm --filter api test:e2e                        # run e2e tests
+pnpm --filter api test -- --testPathPattern=auth   # run a specific test file
+pnpm --filter api prisma:migrate                  # run Prisma migrations (dev)
+pnpm --filter api prisma:generate                  # regenerate Prisma client after schema changes
 ```
 
 ## Architecture
@@ -53,7 +53,7 @@ pnpm --filter api prisma:generate    # regenerate Prisma client after schema cha
 - All pages use standalone components with `inject()` for DI, Signals for reactive state, and `OnPush` change detection.
 - Routes are lazy-loaded (`loadComponent`). Protected routes use `authGuard`.
 - HTTP access is encapsulated in `*ApiService` classes; components never construct request details directly.
-- **Routes:** `''` → redirect to `playground`; `playground` (Content Generator); `projects`; `project/:projectId`; `project/:projectId/post/:postId`; `signin` / `signup`.
+- **Routes:** `''` → redirect to `playground`; `playground` (Content Generator); `projects`; `project/:projectId`; `project/:projectId/post/:postId` (content for specific post); `credits`; `signin` / `signup`.
 - **App shell:** Dark theme (`bg-[#0a0a0a]`), sticky header with zinc borders, nav links `text-zinc-400 hover:bg-zinc-800`.
 - UI components come from **spartan-ng** (headless `@spartan-ng/brain` + styled `@spartan-ng/helm` layer). The helm layer lives in `apps/web/libs/ui/` and is aliased as `@spartan-ng/helm`. Add new components with `npx spartan-cli add <component>`.
 - Tailwind v4 is used for styling; SCSS for component-level styles.
@@ -63,7 +63,7 @@ pnpm --filter api prisma:generate    # regenerate Prisma client after schema cha
 - DTOs are validated with `class-validator` / `class-transformer`. Domain errors are mapped to NestJS HTTP exceptions in the service layer.
 - `PrismaModule` is global; import it into feature modules that need DB access.
 
-**Local dev database:** `docker compose up` starts a `postgres:16-alpine` container. Copy `apps/api/.env.example` to `apps/api/.env` before first run. Default `DATABASE_URL`: `postgresql://postgres:postgres@localhost:5432/marketing?schema=public`.
+**Local dev database:** `docker compose up` starts a `postgres:16-alpine` container. Copy `apps/api/.env.example` to `apps/api/.env` before first run. Default `DATABASE_URL`: `postgresql://postgres:postgres@localhost:5432/marketing?schema=public`. For R2 (post media) and AI (Runware, OpenAI), set the corresponding env vars; see `.env.example` header for canonical key list.
 
 ## AI Assistant Behavior
 
