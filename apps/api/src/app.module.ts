@@ -3,11 +3,12 @@ import { AppController, HealthController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { ContentModule } from './content/content.module';
+import { CreditsModule } from './credits/credits.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ProjectsModule } from './projects/projects.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, ProjectsModule, ContentModule],
+  imports: [PrismaModule, AuthModule, ProjectsModule, ContentModule, CreditsModule],
   controllers: [AppController, HealthController],
   providers: [AppService],
 })

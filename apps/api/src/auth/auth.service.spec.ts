@@ -46,6 +46,7 @@ describe('AuthService', () => {
       email: 'test@example.com',
       passwordHash: 'hash',
       refreshTokenHash: null,
+      credits: 100,
       createdAt: new Date(),
       updatedAt: new Date(),
     } satisfies User;
@@ -102,6 +103,7 @@ describe('AuthService', () => {
       email: 'refresh@example.com',
       passwordHash,
       refreshTokenHash,
+      credits: 100,
       createdAt: new Date(),
       updatedAt: new Date(),
     } satisfies User;
