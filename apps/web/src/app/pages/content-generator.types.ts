@@ -40,3 +40,21 @@ export const COST_ESTIMATES = {
   videoGeneration: 50,
   internetResearch: 5,
 };
+
+/** OpenAI gpt-4o-mini (Mar 2026): $0.15/1M input, $0.60/1M output. Est. ~100 input + ~150 output per variant. */
+export const OPENAI_TEXT_PRICING_USD = {
+  inputPer1M: 0.15,
+  outputPer1M: 0.6,
+  estInputTokensPerVariant: 100,
+  estOutputTokensPerVariant: 150,
+};
+
+export function estimateTextCostUsd(numVariants: number): number {
+  const input = OPENAI_TEXT_PRICING_USD.estInputTokensPerVariant * numVariants;
+  const output =
+    OPENAI_TEXT_PRICING_USD.estOutputTokensPerVariant * numVariants;
+  return (
+    (input * OPENAI_TEXT_PRICING_USD.inputPer1M) / 1_000_000 +
+    (output * OPENAI_TEXT_PRICING_USD.outputPer1M) / 1_000_000
+  );
+}

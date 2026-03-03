@@ -12,11 +12,14 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   COST_ESTIMATES,
+  estimateTextCostUsd,
   PLATFORM_SIZES,
   Platform,
   PlatformSize,
 } from './content-generator.types';
+import { ContentApiService } from '../core/content/content-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
+import { firstValueFrom } from 'rxjs';
 
 const INPUT_CLASS =
   'h-8 w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 text-xs text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500 disabled:opacity-50';
@@ -32,6 +35,7 @@ const TEXTAREA_CLASS =
 export class ContentGeneratorPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly projectsApi = inject(ProjectsApiService);
+  private readonly contentApi = inject(ContentApiService);
 
   projectId = signal<string | null>(null);
   postId = signal<string | null>(null);
@@ -106,6 +110,9 @@ export class ContentGeneratorPage implements OnInit {
     () =>
       this.numTextVariants() * COST_ESTIMATES.textGeneration +
       (this.useResearch() ? COST_ESTIMATES.internetResearch : 0)
+  );
+  readonly textCostUsd = computed(() =>
+    estimateTextCostUsd(this.numTextVariants())
   );
   readonly imageCost = computed(
     () => this.numImageVariants() * COST_ESTIMATES.imageGeneration
@@ -219,19 +226,31 @@ export class ContentGeneratorPage implements OnInit {
     this.textVariants.set([]);
     this.selectedTextIndex.set(null);
     this.setError(null);
-    await new Promise((r) => setTimeout(r, 2000));
-    const variants: string[] = [];
-    const suffix = this.researchAccepted() ? ' (z research)' : '';
-    for (let i = 0; i < this.numTextVariants(); i++) {
-      variants.push(
-        `✨ ${prompt}${suffix} - Wariant ${i + 1} ✨\n\nPrzedstawiamy najnowszą linię produktów...\n\n#${this.platform()} #marketing #socialmedia`
+    try {
+      const res = await firstValueFrom(
+        this.contentApi.generateText({
+          prompt,
+          platform: this.platform(),
+          researchContext: this.researchAccepted()
+            ? this.researchResults()
+                .map((r) => `${r.title}: ${r.snippet}`)
+                .join('\n')
+            : undefined,
+          numVariants: this.numTextVariants(),
+          maxLength: this.maxLength(),
+        })
       );
+      this.textVariants.set(res.texts);
+      this.selectedTextIndex.set(0);
+      this.userCredits.update((c) => c - cost);
+      if (!this.imagePrompt()) this.imagePrompt.set(prompt);
+    } catch (err) {
+      const msg =
+        err instanceof Error ? err.message : 'Błąd generowania tekstu';
+      this.setError(msg);
+    } finally {
+      this.isGeneratingText.set(false);
     }
-    this.textVariants.set(variants);
-    this.selectedTextIndex.set(0);
-    this.userCredits.update((c) => c - cost);
-    this.isGeneratingText.set(false);
-    if (!this.imagePrompt()) this.imagePrompt.set(prompt);
   }
 
   async handleGenerateImage(): Promise<void> {
