@@ -1,7 +1,14 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
+import { CreditsApiService } from '../core/credits/credits-api.service';
 
 @Component({
   selector: 'app-credits-page',
@@ -32,9 +39,13 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
         <div class="rounded-xl border border-zinc-800 bg-zinc-900/70 p-6 space-y-6">
           <div class="flex items-center justify-between">
             <span class="text-sm text-zinc-400">Dostępne kredyty</span>
-            <span class="text-2xl font-semibold text-white">
-              {{ credits().toLocaleString() }}
-            </span>
+            @if (loading()) {
+              <span class="text-2xl font-semibold text-zinc-500">...</span>
+            } @else {
+              <span class="text-2xl font-semibold text-white">
+                {{ credits().toLocaleString() }}
+              </span>
+            }
           </div>
 
           <p class="text-xs text-zinc-500">
@@ -53,6 +64,19 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
     </section>
   `,
 })
-export class CreditsPage {
-  readonly credits = signal(1000);
+export class CreditsPage implements OnInit {
+  private readonly creditsApi = inject(CreditsApiService);
+
+  readonly credits = signal(0);
+  readonly loading = signal(true);
+
+  ngOnInit(): void {
+    this.creditsApi.getCredits().subscribe({
+      next: (res) => {
+        this.credits.set(res.balance);
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
+    });
+  }
 }

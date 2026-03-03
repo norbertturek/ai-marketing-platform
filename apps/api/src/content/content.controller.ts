@@ -1,4 +1,11 @@
-import { Body, Controller, Logger, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  ForbiddenException,
+  Logger,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -29,12 +36,12 @@ export class ContentController {
     model: string;
     remainingCredits: number;
   }> {
-    const remainingCredits = await this.creditsService.deductAndLog(
-      user.userId,
-      TEXT_GENERATION_COST,
-      'text_generation',
-      { model: dto.model, numVariants: dto.numVariants },
-    );
+    const balance = await this.creditsService.getBalance(user.userId);
+    if (balance < TEXT_GENERATION_COST) {
+      throw new ForbiddenException(
+        `Insufficient credits: have ${balance}, need ${TEXT_GENERATION_COST}`,
+      );
+    }
 
     const result = await this.openai.generateSocialPost({
       prompt: dto.prompt,
@@ -45,6 +52,13 @@ export class ContentController {
       model: dto.model,
       temperature: dto.temperature,
     });
+
+    const remainingCredits = await this.creditsService.deductAndLog(
+      user.userId,
+      TEXT_GENERATION_COST,
+      'text_generation',
+      { model: dto.model, numVariants: dto.numVariants },
+    );
 
     this.logger.log('Text generated', {
       userId: user.userId,

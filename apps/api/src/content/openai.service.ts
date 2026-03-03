@@ -1,4 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 
 const OPENAI_API = 'https://api.openai.com/v1/chat/completions';
 
@@ -33,7 +38,9 @@ export class OpenAIService {
   getApiKey(): string {
     const key = process.env.OPENAI_API_KEY;
     if (!key) {
-      throw new Error('OPENAI_API_KEY is not configured');
+      throw new InternalServerErrorException(
+        'OPENAI_API_KEY is not configured',
+      );
     }
     return key;
   }
@@ -94,7 +101,8 @@ Keep posts under ${maxLength} characters when possible.`;
         status: res.status,
         err: json,
       });
-      throw new Error(json.error?.message ?? `OpenAI API error: ${res.status}`);
+      const message = json.error?.message ?? `OpenAI API error: ${res.status}`;
+      throw new BadGatewayException(message);
     }
 
     const choices = json.choices ?? [];
@@ -103,7 +111,7 @@ Keep posts under ${maxLength} characters when possible.`;
       .filter((t): t is string => Boolean(t));
 
     if (texts.length === 0) {
-      throw new Error('OpenAI returned no content');
+      throw new BadGatewayException('OpenAI returned no content');
     }
 
     const usage = {

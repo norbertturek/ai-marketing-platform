@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  Logger,
-} from '@nestjs/common';
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { CreditUsage, Prisma } from '@prisma/client';
 import { CreditsRepository } from './credits.repository';
 

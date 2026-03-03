@@ -5,15 +5,14 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { LucideAngularModule } from 'lucide-angular';
 import { LUCIDE_ICONS } from '../app.config';
-import { ProjectsApiService } from '../core/projects/projects-api.service';
 import { CreditsApiService } from '../core/credits/credits-api.service';
+import { ProjectsApiService } from '../core/projects/projects-api.service';
 import { ContentGeneratorPage } from './content-generator.page';
 
 describe('ContentGeneratorPage', () => {
   const projectsApiMock = {
     getProject: vi.fn(),
   };
-
   const creditsApiMock = {
     getCredits: vi.fn(),
   };
