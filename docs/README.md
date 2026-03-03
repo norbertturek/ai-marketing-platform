@@ -11,7 +11,7 @@ This folder contains project documentation for product, architecture, developmen
 
 - `api.md` - API surface, contracts, versioning, and error model
 - `data-model.md` - Prisma schema overview and migration strategy
-- `frontend.md` - Angular architecture, routing, state, and UI conventions
+- `frontend.md` - Angular architecture, routing, state, and UI conventions (routes: playground, projects, project/:id, project/:id/post/:id; dark app shell)
 - `deployment.md` - local, staging, and production deployment flows
 - `observability.md` - logging, metrics, tracing, and alerting
 - `security.md` - authentication, authorization, and secret handling standards

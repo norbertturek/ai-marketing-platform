@@ -146,7 +146,7 @@ export class SignInPage {
     this.authApi.signIn(payload).subscribe({
       next: (session) => {
         this.authStore.setSession(session);
-        this.router.navigate(['/dashboard']);
+        this.router.navigate(['/projects']);
       },
       error: (error: unknown) => {
         this.errorMessage.set(this.mapSignInError(error));

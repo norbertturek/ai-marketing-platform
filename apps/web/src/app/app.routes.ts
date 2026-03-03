@@ -11,7 +11,7 @@ export const routes: Routes = [
     path: 'playground',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/playground.page').then((m) => m.PlaygroundPage),
+      import('./pages/content-generator.page').then((m) => m.ContentGeneratorPage),
   },
   {
     path: 'signin',
@@ -24,9 +24,21 @@ export const routes: Routes = [
       import('./pages/signup.page').then((m) => m.SignUpPage),
   },
   {
-    path: 'dashboard',
+    path: 'projects',
     canActivate: [authGuard],
     loadComponent: () =>
-      import('./pages/dashboard.page').then((m) => m.DashboardPage),
+      import('./pages/projects.page').then((m) => m.ProjectsPage),
+  },
+  {
+    path: 'project/:projectId',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/project-detail.page').then((m) => m.ProjectDetailPage),
+  },
+  {
+    path: 'project/:projectId/post/:postId',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./pages/content-generator.page').then((m) => m.ContentGeneratorPage),
   },
 ];

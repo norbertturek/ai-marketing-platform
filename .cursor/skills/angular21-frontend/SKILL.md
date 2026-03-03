@@ -16,17 +16,17 @@ description: Build and review Angular 21 frontend code using standalone APIs, si
 ```
 apps/web/src/app/
 ├── pages/              # Page components (lazy-loaded via routes)
-│   └── example.page.ts
+│   ├── content-generator.page.ts   # Playground: text/image/video generation
+│   ├── project-detail.page.ts
+│   ├── projects.page.ts
+│   ├── signin.page.ts
+│   └── signup.page.ts
 ├── core/               # Singleton services, guards, interceptors
-│   └── auth/
-│       ├── auth-api.service.ts
-│       ├── auth-store.service.ts
-│       ├── auth.guard.ts
-│       ├── auth.interceptor.ts
-│       └── auth.types.ts
+│   ├── auth/
+│   └── projects/       # ProjectsApiService (getProjects, getProject, createProject)
 ├── app.routes.ts       # All route definitions
 ├── app.config.ts       # Providers (HttpClient, Router, Sentry)
-└── app.ts              # Root component
+└── app.ts              # Root component (dark shell, nav)
 libs/ui/                # spartan-ng helm components (@spartan-ng/helm/*)
 ```
 
