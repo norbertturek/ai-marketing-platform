@@ -38,13 +38,17 @@ model Project {
   @@index([userId])
 }
 
-/// Placeholder — domain fields (title, content, platform, status) will be added later.
 model Post {
-  id        String   @id @default(cuid())
-  projectId String
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  projectId  String
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  content    String?  /// Generated text/copy for the post
+  imageUrls  String?  /// JSON array of image URLs (stored in R2)
+  videoUrls  String?  /// JSON array of video URLs (stored in R2)
+  platform   String?  /// Target platform: instagram, facebook, etc.
+  status     String?  /// draft | published
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@index([projectId])
 }

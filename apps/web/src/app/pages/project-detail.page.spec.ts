@@ -59,6 +59,11 @@ describe('ProjectDetailPage', () => {
         {
           id: 'post_1',
           projectId: 'proj_1',
+          content: null,
+          imageUrls: [],
+          videoUrls: [],
+          platform: null,
+          status: null,
           createdAt: '2026-03-02T12:00:00.000Z',
           updatedAt: '2026-03-02T12:00:00.000Z',
         },
