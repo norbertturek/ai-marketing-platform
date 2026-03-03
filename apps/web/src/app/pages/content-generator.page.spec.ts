@@ -6,11 +6,16 @@ import { vi } from 'vitest';
 import { LucideAngularModule } from 'lucide-angular';
 import { LUCIDE_ICONS } from '../app.config';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
+import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ContentGeneratorPage } from './content-generator.page';
 
 describe('ContentGeneratorPage', () => {
   const projectsApiMock = {
     getProject: vi.fn(),
+  };
+
+  const creditsApiMock = {
+    getCredits: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -27,11 +32,17 @@ describe('ContentGeneratorPage', () => {
       })
     );
 
+    creditsApiMock.getCredits.mockReset();
+    creditsApiMock.getCredits.mockReturnValue(
+      of({ balance: 100, usage: [] })
+    );
+
     await TestBed.configureTestingModule({
       imports: [ContentGeneratorPage],
       providers: [
         provideRouter([]),
         { provide: ProjectsApiService, useValue: projectsApiMock },
+        { provide: CreditsApiService, useValue: creditsApiMock },
         importProvidersFrom(LucideAngularModule.pick(LUCIDE_ICONS)),
       ],
     }).compileComponents();
@@ -50,8 +61,15 @@ describe('ContentGeneratorPage', () => {
     const fixture = TestBed.createComponent(ContentGeneratorPage);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toMatch(/10\s+kredytów/);
+    expect(el.textContent).toMatch(/1\s+kredytów/);
     expect(el.textContent).toMatch(/25\s+kredytów/);
     expect(el.textContent).toMatch(/50\s+kredytów/);
+  });
+
+  it('fetches credits on init', () => {
+    const fixture = TestBed.createComponent(ContentGeneratorPage);
+    fixture.detectChanges();
+    expect(creditsApiMock.getCredits).toHaveBeenCalled();
+    expect(fixture.componentInstance.userCredits()).toBe(100);
   });
 });

@@ -7,17 +7,18 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   COST_ESTIMATES,
-  estimateTextCostUsd,
   PLATFORM_SIZES,
   Platform,
   PlatformSize,
 } from './content-generator.types';
 import { ContentApiService } from '../core/content/content-api.service';
+import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
 import { firstValueFrom } from 'rxjs';
 
@@ -36,24 +37,19 @@ export class ContentGeneratorPage implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly projectsApi = inject(ProjectsApiService);
   private readonly contentApi = inject(ContentApiService);
+  private readonly creditsApi = inject(CreditsApiService);
 
   projectId = signal<string | null>(null);
   postId = signal<string | null>(null);
   projectName = signal<string>('Playground');
 
-  readonly userCredits = signal(1000);
+  readonly userCredits = signal(0);
 
   readonly textPrompt = signal('');
   readonly textVariants = signal<string[]>([]);
   readonly selectedTextIndex = signal<number | null>(null);
   readonly numTextVariants = signal(1);
   readonly isGeneratingText = signal(false);
-
-  readonly useResearch = signal(false);
-  readonly researchQuery = signal('');
-  readonly isResearching = signal(false);
-  readonly researchResults = signal<{ title: string; snippet: string; url: string }[]>([]);
-  readonly researchAccepted = signal(false);
 
   readonly imagePrompt = signal('');
   readonly negativePrompt = signal('');
@@ -78,7 +74,7 @@ export class ContentGeneratorPage implements OnInit {
   readonly selectedVideoIndex = signal<number | null>(null);
   readonly isGeneratingVideo = signal(false);
 
-  readonly aiModel = signal('gpt-4');
+  readonly aiModel = signal('gpt-4o-mini');
   readonly platform = signal<Platform>('instagram');
   readonly selectedSize = signal<PlatformSize>(PLATFORM_SIZES.instagram[0]);
   readonly temperature = signal(0.7);
@@ -107,12 +103,7 @@ export class ContentGeneratorPage implements OnInit {
   }
 
   readonly textCost = computed(
-    () =>
-      this.numTextVariants() * COST_ESTIMATES.textGeneration +
-      (this.useResearch() ? COST_ESTIMATES.internetResearch : 0)
-  );
-  readonly textCostUsd = computed(() =>
-    estimateTextCostUsd(this.numTextVariants())
+    () => this.numTextVariants() * COST_ESTIMATES.textGeneration
   );
   readonly imageCost = computed(
     () => this.numImageVariants() * COST_ESTIMATES.imageGeneration
@@ -149,7 +140,6 @@ export class ContentGeneratorPage implements OnInit {
     )
       cost += this.imageCost();
     if (this.videoVariants().length > 0) cost += this.videoCost();
-    if (this.researchAccepted()) cost += COST_ESTIMATES.internetResearch;
     return cost;
   });
 
@@ -166,6 +156,11 @@ export class ContentGeneratorPage implements OnInit {
         });
       }
     });
+
+    this.creditsApi.getCredits().subscribe({
+      next: (res) => this.userCredits.set(res.balance),
+      error: () => this.userCredits.set(0),
+    });
   }
 
   handlePlatformChange(p: Platform): void {
@@ -178,37 +173,6 @@ export class ContentGeneratorPage implements OnInit {
 
   setError(msg: string | null): void {
     this.errorMessage.set(msg);
-  }
-
-  async handleResearch(): Promise<void> {
-    const q = this.researchQuery().trim();
-    if (!q) {
-      this.setError('Wpisz zapytanie do wyszukiwarki');
-      return;
-    }
-    this.isResearching.set(true);
-    this.researchResults.set([]);
-    await new Promise((r) => setTimeout(r, 2000));
-    this.researchResults.set([
-      {
-        title: `${q} - Latest News & Updates 2026`,
-        snippet: `Breaking news about ${q}. Recent developments...`,
-        url: 'https://example.com/news/article-1',
-      },
-      {
-        title: `Top 10 Facts About ${q}`,
-        snippet: `Comprehensive guide covering everything...`,
-        url: 'https://example.com/guide/top-facts',
-      },
-    ]);
-    this.isResearching.set(false);
-    this.setError(null);
-  }
-
-  acceptResearch(): void {
-    this.userCredits.update((c) => c - COST_ESTIMATES.internetResearch);
-    this.researchAccepted.set(true);
-    this.setError(null);
   }
 
   async handleGenerateText(): Promise<void> {
@@ -231,22 +195,23 @@ export class ContentGeneratorPage implements OnInit {
         this.contentApi.generateText({
           prompt,
           platform: this.platform(),
-          researchContext: this.researchAccepted()
-            ? this.researchResults()
-                .map((r) => `${r.title}: ${r.snippet}`)
-                .join('\n')
-            : undefined,
           numVariants: this.numTextVariants(),
           maxLength: this.maxLength(),
+          model: this.aiModel(),
+          temperature: this.temperature(),
         })
       );
       this.textVariants.set(res.texts);
       this.selectedTextIndex.set(0);
-      this.userCredits.update((c) => c - cost);
+      this.userCredits.set(res.remainingCredits);
       if (!this.imagePrompt()) this.imagePrompt.set(prompt);
     } catch (err) {
       const msg =
-        err instanceof Error ? err.message : 'Błąd generowania tekstu';
+        err instanceof HttpErrorResponse
+          ? (err.error as { message?: string })?.message ?? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Błąd generowania tekstu';
       this.setError(msg);
     } finally {
       this.isGeneratingText.set(false);
