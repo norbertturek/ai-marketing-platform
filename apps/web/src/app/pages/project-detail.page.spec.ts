@@ -32,7 +32,7 @@ describe('ProjectDetailPage', () => {
         postsCount: 0,
         createdAt: '2026-03-02T00:00:00.000Z',
         updatedAt: '2026-03-02T00:00:00.000Z',
-      })
+      }),
     );
     postsApiMock.getPosts.mockReturnValue(of([]));
 
@@ -67,7 +67,7 @@ describe('ProjectDetailPage', () => {
           createdAt: '2026-03-02T12:00:00.000Z',
           updatedAt: '2026-03-02T12:00:00.000Z',
         },
-      ])
+      ]),
     );
 
     const fixture = TestBed.createComponent(ProjectDetailPage);
@@ -83,7 +83,7 @@ describe('ProjectDetailPage', () => {
     const fixture = TestBed.createComponent(ProjectDetailPage);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain('Brak postów');
-    expect(fixture.nativeElement.textContent).toContain('Utwórz pierwszy post');
+    expect(fixture.nativeElement.textContent).toContain('No posts');
+    expect(fixture.nativeElement.textContent).toContain('Create first post');
   });
 });

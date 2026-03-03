@@ -4,19 +4,25 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { LucideAngularModule } from 'lucide-angular';
-import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../core/projects/projects-api.service';
+import {
+  CreateProjectPayload,
+  ProjectResponse,
+  ProjectsApiService,
+} from '../core/projects/projects-api.service';
 
 @Component({
   selector: 'app-projects-page',
   imports: [ReactiveFormsModule, RouterLink, LucideAngularModule, ...HlmButtonImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="dark rounded-xl border border-zinc-800/50 bg-[#0a0a0a] p-6 text-white shadow-sm md:p-8">
+    <section
+      class="dark rounded-xl border border-zinc-800/50 bg-[#0a0a0a] p-6 text-white shadow-sm md:p-8"
+    >
       <div class="mb-6 md:mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 class="text-xl md:text-2xl font-medium text-white">Twoje projekty</h1>
+          <h1 class="text-xl md:text-2xl font-medium text-white">Your projects</h1>
           <p class="mt-2 text-xs md:text-sm text-zinc-500">
-            Zarządzaj kampaniami marketingowymi w jednym miejscu.
+            Manage your marketing campaigns in one place.
           </p>
         </div>
 
@@ -28,7 +34,7 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
           (click)="toggleCreateForm()"
         >
           <lucide-icon name="Plus" class="size-4" aria-hidden="true"></lucide-icon>
-          {{ showCreateForm() ? 'Zamknij formularz' : 'Nowy projekt' }}
+          {{ showCreateForm() ? 'Close form' : 'New project' }}
         </button>
       </div>
 
@@ -39,13 +45,13 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
           (ngSubmit)="createProject()"
         >
           <div>
-            <label for="project-name" class="mb-2 block text-xs text-zinc-400">Nazwa projektu</label>
+            <label for="project-name" class="mb-2 block text-xs text-zinc-400">Project name</label>
             <input
               id="project-name"
               type="text"
               formControlName="name"
               class="h-11 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500"
-              placeholder="np. Kampania Wiosna 2026"
+              placeholder="e.g. Spring Campaign 2026"
             />
             @if (nameError) {
               <p class="mt-1 text-xs text-red-400">{{ nameError }}</p>
@@ -54,27 +60,27 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
 
           <div>
             <label for="project-description" class="mb-2 block text-xs text-zinc-400"
-              >Opis (opcjonalnie)</label
+              >Description (optional)</label
             >
             <textarea
               id="project-description"
               rows="3"
               formControlName="description"
               class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500"
-              placeholder="Krótki opis projektu..."
+              placeholder="Short project description..."
             ></textarea>
           </div>
 
           <div>
             <label for="project-context" class="mb-2 block text-xs text-zinc-400"
-              >Context AI (opcjonalnie)</label
+              >AI Context (optional)</label
             >
             <textarea
               id="project-context"
               rows="4"
               formControlName="context"
               class="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500"
-              placeholder="Ton, styl, wytyczne marki..."
+              placeholder="Tone, style, brand guidelines..."
             ></textarea>
           </div>
 
@@ -90,7 +96,7 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
               class="border-zinc-700 hover:bg-zinc-800"
               (click)="cancelCreate()"
             >
-              Anuluj
+              Cancel
             </button>
             <button
               hlmBtn
@@ -98,7 +104,7 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
               class="bg-white text-black hover:bg-zinc-200"
               [disabled]="isSubmitting()"
             >
-              {{ isSubmitting() ? 'Tworzenie...' : 'Utwórz projekt' }}
+              {{ isSubmitting() ? 'Creating...' : 'Create project' }}
             </button>
           </div>
         </form>
@@ -108,23 +114,21 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
         <div
           class="rounded-lg border border-zinc-800 bg-zinc-900/40 p-8 text-center text-sm text-zinc-500"
         >
-          Ładowanie projektów...
+          Loading projects...
         </div>
       } @else if (errorMessage()) {
-        <div
-          class="rounded-lg border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300"
-        >
+        <div class="rounded-lg border border-red-900/50 bg-red-950/20 p-4 text-sm text-red-300">
           {{ errorMessage() }}
         </div>
       } @else if (projects().length === 0) {
-        <div
-          class="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-12 text-center"
-        >
-          <lucide-icon name="Folder" class="mx-auto mb-4 size-16 text-zinc-700" aria-hidden="true"></lucide-icon>
-          <h2 class="text-lg font-medium text-white">Brak projektów</h2>
-          <p class="mt-2 text-sm text-zinc-500 mb-6">
-            Zacznij od utworzenia swojego pierwszego projektu.
-          </p>
+        <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-12 text-center">
+          <lucide-icon
+            name="Folder"
+            class="mx-auto mb-4 size-16 text-zinc-700"
+            aria-hidden="true"
+          ></lucide-icon>
+          <h2 class="text-lg font-medium text-white">No projects</h2>
+          <p class="mt-2 text-sm text-zinc-500 mb-6">Start by creating your first project.</p>
           <button
             hlmBtn
             type="button"
@@ -132,16 +136,13 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
             (click)="toggleCreateForm()"
           >
             <lucide-icon name="Plus" class="mr-2 size-4" aria-hidden="true"></lucide-icon>
-            Utwórz pierwszy projekt
+            Create first project
           </button>
         </div>
       } @else {
         <div class="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
           @for (project of projects(); track project.id) {
-            <a
-              [routerLink]="['/project', project.id]"
-              class="group block"
-            >
+            <a [routerLink]="['/project', project.id]" class="group block">
               <article
                 class="rounded-lg border border-zinc-800/50 bg-zinc-900/30 p-5 transition-colors hover:border-zinc-700 cursor-pointer"
               >
@@ -152,13 +153,15 @@ import { CreateProjectPayload, ProjectResponse, ProjectsApiService } from '../co
                   >
                     <lucide-icon name="Folder" class="size-5"></lucide-icon>
                   </div>
-                  <span class="text-xs text-zinc-600">{{ project.postsCount }} treści</span>
+                  <span class="text-xs text-zinc-600">{{ project.postsCount }} items</span>
                 </div>
-                <h3 class="text-base font-medium text-white mb-2 group-hover:text-white transition-colors">
+                <h3
+                  class="text-base font-medium text-white mb-2 group-hover:text-white transition-colors"
+                >
                   {{ project.name }}
                 </h3>
                 <p class="text-xs text-zinc-500 line-clamp-2 mb-4">
-                  {{ project.description || 'Brak opisu' }}
+                  {{ project.description || 'No description' }}
                 </p>
                 <div class="flex items-center text-xs text-zinc-600">
                   <lucide-icon name="Calendar" class="mr-1 size-3"></lucide-icon>
@@ -207,10 +210,10 @@ export class ProjectsPage implements OnInit {
       return null;
     }
     if (control.hasError('required')) {
-      return 'Nazwa projektu jest wymagana';
+      return 'Project name is required';
     }
     if (control.hasError('maxlength')) {
-      return 'Nazwa projektu może mieć maksymalnie 255 znaków';
+      return 'Project name can have at most 255 characters';
     }
     return null;
   }
@@ -260,7 +263,7 @@ export class ProjectsPage implements OnInit {
   }
 
   formatDate(isoDate: string): string {
-    return new Date(isoDate).toLocaleDateString('pl-PL');
+    return new Date(isoDate).toLocaleDateString('en-US');
   }
 
   private loadProjects(): void {
@@ -270,7 +273,7 @@ export class ProjectsPage implements OnInit {
     this.projectsApi.getProjects().subscribe({
       next: (projects) => this.projects.set(projects),
       error: () => {
-        this.errorMessage.set('Nie udało się załadować projektów. Spróbuj ponownie.');
+        this.errorMessage.set('Could not load projects. Please try again.');
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),
@@ -279,8 +282,8 @@ export class ProjectsPage implements OnInit {
 
   private mapCreateError(error: unknown): string {
     if (error instanceof HttpErrorResponse && error.status === 400) {
-      return 'Niepoprawne dane projektu. Sprawdź formularz.';
+      return 'Invalid project data. Please check the form.';
     }
-    return 'Nie udało się utworzyć projektu. Spróbuj ponownie.';
+    return 'Could not create project. Please try again.';
   }
 }

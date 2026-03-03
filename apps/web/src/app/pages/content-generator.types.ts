@@ -8,20 +8,20 @@ export type PlatformSize = {
 
 export const PLATFORM_SIZES: Record<Platform, PlatformSize[]> = {
   facebook: [
-    { name: 'Post (kwadrat)', width: 1200, height: 1200 },
-    { name: 'Post (poziomy)', width: 1200, height: 630 },
+    { name: 'Post (square)', width: 1200, height: 1200 },
+    { name: 'Post (horizontal)', width: 1200, height: 630 },
     { name: 'Story', width: 1080, height: 1920 },
     { name: 'Cover', width: 820, height: 312 },
   ],
   instagram: [
-    { name: 'Post (kwadrat)', width: 1080, height: 1080 },
-    { name: 'Post (pionowy)', width: 1080, height: 1350 },
+    { name: 'Post (square)', width: 1080, height: 1080 },
+    { name: 'Post (vertical)', width: 1080, height: 1350 },
     { name: 'Story/Reels', width: 1080, height: 1920 },
-    { name: 'Karuzela', width: 1080, height: 1080 },
+    { name: 'Carousel', width: 1080, height: 1080 },
   ],
   linkedin: [
-    { name: 'Post (poziomy)', width: 1200, height: 627 },
-    { name: 'Post (kwadrat)', width: 1200, height: 1200 },
+    { name: 'Post (horizontal)', width: 1200, height: 627 },
+    { name: 'Post (square)', width: 1200, height: 1200 },
     { name: 'Cover', width: 1584, height: 396 },
   ],
   twitter: [
@@ -29,8 +29,8 @@ export const PLATFORM_SIZES: Record<Platform, PlatformSize[]> = {
     { name: 'Header', width: 1500, height: 500 },
   ],
   tiktok: [
-    { name: 'Video (pionowy)', width: 1080, height: 1920 },
-    { name: 'Video (kwadrat)', width: 1080, height: 1080 },
+    { name: 'Video (vertical)', width: 1080, height: 1920 },
+    { name: 'Video (square)', width: 1080, height: 1080 },
   ],
 };
 
@@ -41,10 +41,7 @@ export const COST_ESTIMATES = {
 };
 
 /** Runware-compatible dimensions (multiples of 64, 128–2048) per aspect ratio */
-export const ASPECT_RATIO_DIMENSIONS: Record<
-  string,
-  { width: number; height: number }
-> = {
+export const ASPECT_RATIO_DIMENSIONS: Record<string, { width: number; height: number }> = {
   '1:1': { width: 1024, height: 1024 },
   '16:9': { width: 1024, height: 576 },
   '9:16': { width: 576, height: 1024 },
