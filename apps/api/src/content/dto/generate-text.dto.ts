@@ -1,4 +1,12 @@
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class GenerateTextDto {
@@ -12,6 +20,18 @@ export class GenerateTextDto {
   @IsOptional()
   @IsString()
   researchContext?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['gpt-4o-mini', 'gpt-4o', 'gpt-4-turbo'])
+  model?: string = 'gpt-4o-mini';
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(2)
+  temperature?: number = 0.7;
 
   @IsOptional()
   @Type(() => Number)
