@@ -12,10 +12,12 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { LucideAngularModule } from 'lucide-angular';
 import {
+  ASPECT_RATIO_DIMENSIONS,
   COST_ESTIMATES,
   PLATFORM_SIZES,
   Platform,
   PlatformSize,
+  RUNWARE_IMAGE_MODELS,
 } from './content-generator.types';
 import { ContentApiService } from '../core/content/content-api.service';
 import { CreditsApiService } from '../core/credits/credits-api.service';
@@ -53,11 +55,12 @@ export class ContentGeneratorPage implements OnInit {
 
   readonly imagePrompt = signal('');
   readonly negativePrompt = signal('');
-  readonly imageModel = signal('stable-diffusion-xl');
-  readonly imageStyle = signal('realistic');
+  readonly imageModel = signal(RUNWARE_IMAGE_MODELS[0].id);
+  readonly customImageModel = signal('');
   readonly aspectRatio = signal('1:1');
   readonly cfgScale = signal(7.5);
   readonly steps = signal(30);
+  readonly imageOutputFormat = signal<'JPG' | 'PNG' | 'WEBP'>('WEBP');
   readonly numImageVariants = signal(1);
   readonly imageVariants = signal<string[]>([]);
   readonly selectedImageIndex = signal<number | null>(null);
@@ -93,6 +96,7 @@ export class ContentGeneratorPage implements OnInit {
     'twitter',
     'tiktok',
   ];
+  readonly runwareImageModels = RUNWARE_IMAGE_MODELS;
 
   contentCount(): number {
     return [
@@ -127,7 +131,9 @@ export class ContentGeneratorPage implements OnInit {
     const vars = this.videoVariants();
     return idx !== null && vars[idx] !== undefined ? vars[idx] : null;
   });
-  readonly canGenerateImage = computed(() => this.selectedTextIndex() !== null);
+  readonly canGenerateImage = computed(
+    () => this.imagePrompt().trim().length > 0
+  );
   readonly canGenerateVideo = computed(() => this.selectedImageIndex() !== null);
   readonly hasContent = computed(() => this.selectedText() !== null);
 
@@ -226,7 +232,9 @@ export class ContentGeneratorPage implements OnInit {
     }
     const cost = this.imageCost();
     if (this.userCredits() < cost) {
-      this.setError(`Niewystarczająca ilość kredytów! Potrzebujesz ${cost} kredytów.`);
+      this.setError(
+        `Niewystarczająca ilość kredytów! Potrzebujesz ${cost} kredytów.`
+      );
       return;
     }
     this.isGeneratingImage.set(true);
@@ -234,17 +242,41 @@ export class ContentGeneratorPage implements OnInit {
     this.selectedImageIndex.set(null);
     this.uploadedImage.set(null);
     this.setError(null);
-    await new Promise((r) => setTimeout(r, 3000));
-    const variants: string[] = [];
-    for (let i = 0; i < this.numImageVariants(); i++) {
-      variants.push(
-        `https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=800&h=800&fit=crop&seed=${Date.now() + i}`
+
+    const dims =
+      ASPECT_RATIO_DIMENSIONS[this.aspectRatio()] ??
+      ASPECT_RATIO_DIMENSIONS['1:1'];
+    const model =
+      this.customImageModel().trim() || this.imageModel();
+
+    try {
+      const res = await firstValueFrom(
+        this.contentApi.generateImage({
+          prompt,
+          negativePrompt: this.negativePrompt().trim() || undefined,
+          model,
+          width: dims.width,
+          height: dims.height,
+          steps: this.steps(),
+          cfgScale: this.cfgScale(),
+          numberResults: this.numImageVariants(),
+          outputFormat: this.imageOutputFormat(),
+        })
       );
+      this.imageVariants.set(res.urls);
+      this.selectedImageIndex.set(0);
+      this.userCredits.set(res.remainingCredits);
+    } catch (err) {
+      const msg =
+        err instanceof HttpErrorResponse
+          ? (err.error as { message?: string })?.message ?? err.message
+          : err instanceof Error
+            ? err.message
+            : 'Błąd generowania obrazka';
+      this.setError(msg);
+    } finally {
+      this.isGeneratingImage.set(false);
     }
-    this.imageVariants.set(variants);
-    this.selectedImageIndex.set(0);
-    this.userCredits.update((c) => c - cost);
-    this.isGeneratingImage.set(false);
   }
 
   onImageUpload(event: Event): void {

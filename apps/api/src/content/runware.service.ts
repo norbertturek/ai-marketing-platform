@@ -62,27 +62,34 @@ export class RunwareService {
   async generateImages(params: {
     prompt: string;
     negativePrompt?: string;
+    model?: string;
     width?: number;
     height?: number;
     numVariants?: number;
     cfgScale?: number;
     steps?: number;
+    outputFormat?: 'JPG' | 'PNG' | 'WEBP';
   }): Promise<{ urls: string[]; imageUUIDs: string[] }> {
     const tasks = params.numVariants ?? 1;
     const taskUUIDs = Array.from({ length: tasks }, () => crypto.randomUUID());
+    const format = (params.outputFormat ?? 'WEBP').toLowerCase();
+    const negPrompt =
+      params.negativePrompt && params.negativePrompt.length >= 2
+        ? params.negativePrompt
+        : undefined;
     const runwareTasks = taskUUIDs.map((taskUUID) => ({
       taskType: 'imageInference',
       taskUUID,
       positivePrompt: params.prompt,
-      negativePrompt: params.negativePrompt ?? '',
+      ...(negPrompt ? { negativePrompt: negPrompt } : {}),
       width: params.width ?? 1024,
       height: params.height ?? 1024,
-      model: DEFAULT_IMAGE_MODEL,
+      model: params.model ?? DEFAULT_IMAGE_MODEL,
       steps: params.steps ?? 30,
       CFGScale: params.cfgScale ?? 7.5,
       numberResults: 1,
       outputType: 'URL',
-      outputFormat: 'webp',
+      outputFormat: format,
     }));
     const res = await this.request(runwareTasks);
     const urls: string[] = [];

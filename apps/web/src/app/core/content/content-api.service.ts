@@ -24,6 +24,24 @@ export type GenerateTextResponse = {
   remainingCredits: number;
 };
 
+export type GenerateImagePayload = {
+  prompt: string;
+  negativePrompt?: string;
+  model?: string;
+  width?: number;
+  height?: number;
+  steps?: number;
+  cfgScale?: number;
+  numberResults?: number;
+  outputFormat?: 'JPG' | 'PNG' | 'WEBP';
+};
+
+export type GenerateImageResponse = {
+  urls: string[];
+  imageUUIDs: string[];
+  remainingCredits: number;
+};
+
 @Injectable({ providedIn: 'root' })
 export class ContentApiService {
   private readonly http = inject(HttpClient);
@@ -33,6 +51,15 @@ export class ContentApiService {
   generateText(payload: GenerateTextPayload): Observable<GenerateTextResponse> {
     return this.http.post<GenerateTextResponse>(
       `${this.baseUrl}/content/generate-text`,
+      payload
+    );
+  }
+
+  generateImage(
+    payload: GenerateImagePayload
+  ): Observable<GenerateImageResponse> {
+    return this.http.post<GenerateImageResponse>(
+      `${this.baseUrl}/content/generate-image`,
       payload
     );
   }

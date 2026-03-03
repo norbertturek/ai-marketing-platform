@@ -36,6 +36,26 @@ export const PLATFORM_SIZES: Record<Platform, PlatformSize[]> = {
 
 export const COST_ESTIMATES = {
   textGeneration: 1,
-  imageGeneration: 25,
+  imageGeneration: 5,
   videoGeneration: 50,
 };
+
+/** Runware-compatible dimensions (multiples of 64, 128–2048) per aspect ratio */
+export const ASPECT_RATIO_DIMENSIONS: Record<
+  string,
+  { width: number; height: number }
+> = {
+  '1:1': { width: 1024, height: 1024 },
+  '16:9': { width: 1024, height: 576 },
+  '9:16': { width: 576, height: 1024 },
+  '4:5': { width: 1024, height: 1280 },
+};
+
+/** Preset Runware image models (AIR identifiers) */
+export const RUNWARE_IMAGE_MODELS: { id: string; label: string }[] = [
+  { id: 'runware:101@1', label: 'FLUX.1 [dev]' },
+  { id: 'runware:102@1', label: 'FLUX Fill' },
+  { id: 'runware:105@1', label: 'FLUX Redux' },
+  { id: 'runware:103@1', label: 'FLUX Depth' },
+  { id: 'runware:104@1', label: 'FLUX Canny' },
+];
