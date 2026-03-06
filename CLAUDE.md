@@ -14,7 +14,10 @@ pnpm check-types      # typecheck all apps
 pnpm format           # format all files with Prettier
 pnpm docker:up        # start Postgres + API via Docker Compose
 pnpm docker:down      # stop containers
+pnpm test:e2e        # Playwright browser e2e (requires Docker up first)
 ```
+
+**E2E (Playwright):** Tests in `e2e/`. Run `pnpm docker:up` first, then `pnpm test:e2e`.
 
 **Frontend (`apps/web`) — run from that directory or via filter:**
 ```bash
@@ -96,7 +99,7 @@ Before considering any task complete:
 ### Context Awareness
 - **File patterns:** Automatically detect whether working in frontend/backend
 - **Framework detection:** Apply Angular or NestJS best practices based on file location
-- **Test framework:** Use Vitest for frontend, Jest for backend
+- **Test framework:** Use Vitest for frontend, Jest for backend, Playwright for browser e2e
 - **Style system:** Apply Tailwind v4 classes in Angular templates
 - **Component library:** Use spartan-ng components when available
 
