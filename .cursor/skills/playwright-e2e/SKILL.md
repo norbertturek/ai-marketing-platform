@@ -29,9 +29,10 @@ pnpm exec playwright test e2e/auth.spec.ts   # Single file
 
 ```
 e2e/
-├── auth.spec.ts      # Signup, signin
-├── projects.spec.ts  # Create project
-└── playground.spec.ts # Content generator UI
+├── auth.spec.ts           # Signup, signin
+├── projects.spec.ts      # Create project
+├── playground.spec.ts   # Content generator UI
+└── video-generation.spec.ts  # Video generation flow (mocked API)
 ```
 
 ## Patterns

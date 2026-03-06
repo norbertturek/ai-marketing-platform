@@ -25,6 +25,13 @@ export class R2Service {
         },
         forcePathStyle: true,
       });
+      this.logger.log(
+        `R2 configured: bucket=${this.bucket}, publicUrl=${this.publicBaseUrl ?? 'not set'}`,
+      );
+    } else {
+      this.logger.warn(
+        'R2 not configured: set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY',
+      );
     }
   }
 
@@ -53,6 +60,7 @@ export class R2Service {
         ContentType: contentType,
       }),
     );
+    this.logger.log(`R2 upload success: ${key} (${body.length} bytes)`);
 
     if (this.publicBaseUrl) {
       const base = this.publicBaseUrl.replace(/\/$/, '');
