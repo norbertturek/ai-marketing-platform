@@ -1,7 +1,10 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   ForbiddenException,
+  GatewayTimeoutException,
+  InternalServerErrorException,
   Logger,
   Post,
   UseGuards,
@@ -15,10 +18,14 @@ import type { GenerateResult } from './openai.service';
 import { RunwareService } from './runware.service';
 import { GenerateTextDto } from './dto/generate-text.dto';
 import { GenerateImageDto } from './dto/generate-image.dto';
+import { GenerateVideoDto } from './dto/generate-video.dto';
 import { normalizeImageDimensions } from './runware-dimensions';
 
 const TEXT_GENERATION_COST = 1;
 const IMAGE_GENERATION_COST_PER_IMAGE = 5;
+const VIDEO_GENERATION_COST_PER_VIDEO = 50;
+const VIDEO_POLL_INTERVAL_MS = 3000;
+const VIDEO_POLL_MAX_WAIT_MS = 180_000;
 
 @Controller('content')
 @UseGuards(JwtAuthGuard)
@@ -135,5 +142,88 @@ export class ContentController {
     });
 
     return { urls, imageUUIDs, remainingCredits };
+  }
+
+  @Post('generate-video')
+  async generateVideo(
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: GenerateVideoDto,
+  ): Promise<{
+    urls: string[];
+    remainingCredits: number;
+  }> {
+    const hasUuid = dto.imageUUID && dto.imageUUID.trim().length > 0;
+    const hasData = dto.imageData && dto.imageData.trim().length > 0;
+    if (!hasUuid && !hasData) {
+      throw new BadRequestException('Provide imageUUID or imageData');
+    }
+    if (hasUuid && hasData) {
+      throw new BadRequestException(
+        'Provide either imageUUID or imageData, not both',
+      );
+    }
+
+    const numberResults = dto.numberResults ?? 1;
+    const totalCost = numberResults * VIDEO_GENERATION_COST_PER_VIDEO;
+    const balance = await this.creditsService.getBalance(user.userId);
+    if (balance < totalCost) {
+      throw new ForbiddenException(
+        `Insufficient credits: have ${balance}, need ${totalCost}`,
+      );
+    }
+
+    let imageUUID = dto.imageUUID;
+    if (dto.imageData) {
+      imageUUID = await this.runware.uploadImage(dto.imageData);
+    }
+
+    const taskUUIDs: string[] = [];
+    for (let i = 0; i < numberResults; i++) {
+      const taskUUID = await this.runware.generateVideo({
+        imageUUID: imageUUID!,
+        prompt: dto.prompt,
+        duration: dto.duration ?? 5,
+      });
+      taskUUIDs.push(taskUUID);
+    }
+
+    const urls: string[] = [];
+    const start = Date.now();
+
+    for (const taskUUID of taskUUIDs) {
+      let found = false;
+      while (Date.now() - start < VIDEO_POLL_MAX_WAIT_MS) {
+        const result = await this.runware.getVideoResult(taskUUID);
+        if (result.status === 'success' && result.videoURL) {
+          urls.push(result.videoURL);
+          found = true;
+          break;
+        }
+        if (result.status === 'error') {
+          throw new InternalServerErrorException(
+            result.error ?? 'Video generation failed',
+          );
+        }
+        await new Promise((r) => setTimeout(r, VIDEO_POLL_INTERVAL_MS));
+      }
+      if (!found) {
+        throw new GatewayTimeoutException('Video generation timed out');
+      }
+    }
+
+    const remainingCredits = await this.creditsService.deductAndLog(
+      user.userId,
+      totalCost,
+      'video_generation',
+      { numberResults, duration: dto.duration },
+    );
+
+    this.logger.log('Video generated', {
+      userId: user.userId,
+      count: urls.length,
+      remainingCredits,
+    });
+
+    return { urls, remainingCredits };
   }
 }

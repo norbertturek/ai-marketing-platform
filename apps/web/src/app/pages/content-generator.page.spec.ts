@@ -5,6 +5,7 @@ import { of } from 'rxjs';
 import { vi } from 'vitest';
 import { LucideAngularModule } from 'lucide-angular';
 import { LUCIDE_ICONS } from '../app.config';
+import { ContentApiService } from '../core/content/content-api.service';
 import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
 import { PostsApiService } from '../core/projects/posts-api.service';
@@ -21,6 +22,11 @@ describe('ContentGeneratorPage', () => {
   const postsApiMock = {
     createPost: vi.fn(),
     updatePost: vi.fn(),
+  };
+  const contentApiMock = {
+    generateText: vi.fn(),
+    generateImage: vi.fn(),
+    generateVideo: vi.fn(),
   };
 
   beforeEach(async () => {
@@ -44,6 +50,9 @@ describe('ContentGeneratorPage', () => {
 
     postsApiMock.createPost.mockReset();
     postsApiMock.updatePost.mockReset();
+    contentApiMock.generateText.mockReset();
+    contentApiMock.generateImage.mockReset();
+    contentApiMock.generateVideo.mockReset();
 
     await TestBed.configureTestingModule({
       imports: [ContentGeneratorPage],
@@ -52,6 +61,7 @@ describe('ContentGeneratorPage', () => {
         { provide: ProjectsApiService, useValue: projectsApiMock },
         { provide: CreditsApiService, useValue: creditsApiMock },
         { provide: PostsApiService, useValue: postsApiMock },
+        { provide: ContentApiService, useValue: contentApiMock },
         importProvidersFrom(LucideAngularModule.pick(LUCIDE_ICONS)),
       ],
     }).compileComponents();
@@ -176,6 +186,37 @@ describe('ContentGeneratorPage', () => {
       expect(fixture.componentInstance.selectedProjectForSave()).toBe('proj_1');
       fixture.componentInstance.selectProjectForSave('proj_1');
       expect(fixture.componentInstance.selectedProjectForSave()).toBe(null);
+    });
+  });
+
+  describe('video generation', () => {
+    it('handleGenerateVideo calls generateVideo with imageUUID when available', async () => {
+      contentApiMock.generateVideo.mockReturnValue(
+        of({ urls: ['https://example.com/video.mp4'], remainingCredits: 50 }),
+      );
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      fixture.componentInstance.imageVariants.set(['https://runware.example/img.webp']);
+      fixture.componentInstance.imageUUIDs.set(['uuid-123']);
+      fixture.componentInstance.selectedImageIndex.set(0);
+      fixture.componentInstance.imagePrompt.set('Smooth motion');
+      fixture.componentInstance.videoDuration.set('5');
+      fixture.componentInstance.numVideoVariants.set(1);
+      fixture.componentInstance.userCredits.set(100);
+      fixture.detectChanges();
+
+      await fixture.componentInstance.handleGenerateVideo();
+
+      expect(contentApiMock.generateVideo).toHaveBeenCalledWith(
+        expect.objectContaining({
+          imageUUID: 'uuid-123',
+          prompt: 'Smooth motion',
+          duration: 5,
+          numberResults: 1,
+        }),
+      );
+      expect(fixture.componentInstance.videoVariants()).toEqual(['https://example.com/video.mp4']);
+      expect(fixture.componentInstance.userCredits()).toBe(50);
     });
   });
 });
