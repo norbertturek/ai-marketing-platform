@@ -12,9 +12,9 @@ Or create via [Cloudflare Dashboard](https://dash.cloudflare.com) → R2 → Cre
 
 ## 2. Enable public dev URL
 
-The app needs a public base URL to return shareable links. Enable the r2.dev subdomain:
+The app needs a public base URL to return shareable links. **Without this, saved media URLs won't be publicly accessible.**
 
-**Via Wrangler CLI:**
+**Via Wrangler CLI:** (requires `wrangler login` or `CLOUDFLARE_API_TOKEN`)
 ```bash
 npx wrangler r2 bucket dev-url enable posts-media
 ```
@@ -30,6 +30,7 @@ npx wrangler r2 bucket dev-url enable posts-media
 ```bash
 npx wrangler r2 bucket dev-url get posts-media
 ```
+Output: `https://pub-xxxxx.r2.dev` — add to `apps/api/.env` as `R2_PUBLIC_URL`
 
 **Via Dashboard:** After enabling, the URL appears under **Public Bucket URL** (format: `https://pub-xxxxx.r2.dev`).
 
@@ -43,6 +44,7 @@ R2_BUCKET_NAME=posts-media
 R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
 ```
 
+**Critical:** `R2_PUBLIC_URL` must be set. Without it, uploads succeed but the app stores original URLs (Runware links may expire).
 - **Account ID:** Dashboard → R2 → Overview (right sidebar)
 - **API tokens:** R2 → Manage R2 API Tokens → Create API token (Object Read & Write)
 
@@ -50,10 +52,12 @@ R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
 
 If the bucket stays empty:
 
-- Ensure all 5 R2 env vars are set (including `R2_PUBLIC_URL`)
+- Ensure all 5 R2 env vars are set in `apps/api/.env` (including `R2_PUBLIC_URL`)
+- **Local dev:** `.env` is loaded from `apps/api/`. Run API from repo root: `pnpm dev` or `pnpm dev:api`
+- **Docker:** `docker-compose` loads `apps/api/.env` via `env_file`. Ensure the file exists.
 - Restart the API after changing .env
 - Save a post with image/video from the playground — upload runs only when saving
-- Check API logs for `R2 not configured, skipping upload` (means credentials missing)
+- Check API logs: `R2 not configured` (credentials missing); `R2 upload failed` (see error for NoSuchBucket, AccessDenied, etc.)
 
 ## Cloudflare MCP
 

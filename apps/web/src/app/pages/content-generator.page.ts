@@ -161,6 +161,12 @@ export class ContentGeneratorPage implements OnInit {
           error: () => this.projectName.set('Playground'),
         });
       }
+      if (pid && postId && !postId.startsWith('post-')) {
+        this.postsApi.getPost(pid, postId).subscribe({
+          next: (post) => this.loadPostData(post),
+          error: () => this.setError('Could not load post.'),
+        });
+      }
     });
 
     this.creditsApi.getCredits().subscribe({
@@ -171,6 +177,30 @@ export class ContentGeneratorPage implements OnInit {
     this.projectsApi.getProjects().subscribe({
       next: (list) => this.projects.set(list),
     });
+  }
+
+  private loadPostData(post: {
+    content: string | null;
+    imageUrls: string[];
+    videoUrls: string[];
+    platform: string | null;
+  }): void {
+    if (post.content) {
+      this.textVariants.set([post.content]);
+      this.selectedTextIndex.set(0);
+      if (!this.textPrompt()) this.textPrompt.set(post.content.slice(0, 100));
+    }
+    if (post.imageUrls?.length > 0) {
+      this.imageVariants.set(post.imageUrls);
+      this.selectedImageIndex.set(0);
+    }
+    if (post.videoUrls?.length > 0) {
+      this.videoVariants.set(post.videoUrls);
+      this.selectedVideoIndex.set(0);
+    }
+    if (post.platform && ['facebook', 'instagram', 'linkedin', 'twitter', 'tiktok'].includes(post.platform)) {
+      this.platform.set(post.platform as Platform);
+    }
   }
 
   handlePlatformChange(p: Platform): void {

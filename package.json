@@ -12,6 +12,8 @@
     "check-types": "turbo run check-types",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
+    "r2:public-url": "wrangler r2 bucket dev-url get ai-marketing-platform",
+    "r2:public-url:enable": "wrangler r2 bucket dev-url enable ai-marketing-platform",
     "prepare": "husky"
   },
   "devDependencies": {
@@ -19,7 +21,8 @@
     "husky": "^9.1.7",
     "prettier": "^3.7.4",
     "turbo": "^2.8.11",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "wrangler": "^4.71.0"
   },
   "packageManager": "pnpm@9.0.0",
   "engines": {
