@@ -25,9 +25,17 @@ export class R2Service {
         },
         forcePathStyle: true,
       });
-      this.logger.log(
-        `R2 configured: bucket=${this.bucket}, publicUrl=${this.publicBaseUrl ?? 'not set'}`,
-      );
+      if (this.publicBaseUrl) {
+        this.logger.log(
+          `R2 configured: bucket=${this.bucket}, publicUrl=${this.publicBaseUrl}`,
+        );
+      } else {
+        this.logger.error(
+          'R2_PUBLIC_URL is not set. Media will upload to R2 but saved posts will store original URLs (may expire). ' +
+            `Enable public access: Cloudflare R2 → bucket "${this.bucket}" → Settings → Public Development URL → Enable. ` +
+            `Then: npx wrangler r2 bucket dev-url get ${this.bucket}`,
+        );
+      }
     } else {
       this.logger.warn(
         'R2 not configured: set R2_ACCOUNT_ID, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY',

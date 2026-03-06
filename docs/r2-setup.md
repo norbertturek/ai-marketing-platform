@@ -5,22 +5,22 @@ Post images and videos are stored in Cloudflare R2. If you don't see files in yo
 ## 1. Create bucket (if needed)
 
 ```bash
-npx wrangler r2 bucket create posts-media
+npx wrangler r2 bucket create ai-marketing-platform
 ```
 
 Or create via [Cloudflare Dashboard](https://dash.cloudflare.com) → R2 → Create bucket.
 
 ## 2. Enable public dev URL
 
-The app needs a public base URL to return shareable links. Enable the r2.dev subdomain:
+The app needs a public base URL to return shareable links. **Without this, saved media URLs won't be publicly accessible.**
 
-**Via Wrangler CLI:**
+**Via Wrangler CLI:** (requires `wrangler login` or `CLOUDFLARE_API_TOKEN`)
 ```bash
-npx wrangler r2 bucket dev-url enable posts-media
+pnpm r2:public-url:enable
 ```
 
 **Via Dashboard:**
-1. R2 → your bucket (`posts-media`) → **Settings**
+1. R2 → your bucket (`ai-marketing-platform`) → **Settings**
 2. **Public Development URL** → **Enable**
 3. Confirm by typing `allow`
 
@@ -28,8 +28,9 @@ npx wrangler r2 bucket dev-url enable posts-media
 
 **Via Wrangler:**
 ```bash
-npx wrangler r2 bucket dev-url get posts-media
+pnpm r2:public-url
 ```
+Output: `https://pub-xxxxx.r2.dev` — add to `apps/api/.env` as `R2_PUBLIC_URL`
 
 **Via Dashboard:** After enabling, the URL appears under **Public Bucket URL** (format: `https://pub-xxxxx.r2.dev`).
 
@@ -39,9 +40,11 @@ npx wrangler r2 bucket dev-url get posts-media
 R2_ACCOUNT_ID=your_account_id
 R2_ACCESS_KEY_ID=your_access_key
 R2_SECRET_ACCESS_KEY=your_secret
-R2_BUCKET_NAME=posts-media
+R2_BUCKET_NAME=ai-marketing-platform
 R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
 ```
+
+**Critical:** `R2_PUBLIC_URL` must be set. Without it, uploads succeed but the app stores original URLs (Runware links may expire).
 
 - **Account ID:** Dashboard → R2 → Overview (right sidebar)
 - **API tokens:** R2 → Manage R2 API Tokens → Create API token (Object Read & Write)
