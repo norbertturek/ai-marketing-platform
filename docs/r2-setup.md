@@ -53,10 +53,12 @@ R2_PUBLIC_URL=https://pub-xxxxx.r2.dev
 
 If the bucket stays empty:
 
-- Ensure all 5 R2 env vars are set (including `R2_PUBLIC_URL`)
+- Ensure all 5 R2 env vars are set in `apps/api/.env` (including `R2_PUBLIC_URL`)
+- **Local dev:** `.env` is loaded from `apps/api/`. Run API from repo root: `pnpm dev` or `pnpm dev:api`
+- **Docker:** `docker-compose` loads `apps/api/.env` via `env_file`. Ensure the file exists.
 - Restart the API after changing .env
 - Save a post with image/video from the playground — upload runs only when saving
-- Check API logs for `R2 not configured, skipping upload` (means credentials missing)
+- Check API logs: `R2 not configured` (credentials missing); `R2 upload failed` (see error for NoSuchBucket, AccessDenied, etc.)
 
 ## Cloudflare MCP
 

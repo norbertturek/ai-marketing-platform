@@ -184,24 +184,31 @@ export class PostsService {
     for (let i = 0; i < urls.length; i++) {
       const url = urls[i];
       if (!url) continue;
-      if (url.startsWith('data:')) {
-        const [header, base64] = url.split(',');
-        const mime =
-          header.match(/data:([^;]+)/)?.[1] ?? 'application/octet-stream';
-        const ext = mime.split('/')[1] ?? (type === 'image' ? 'webp' : 'mp4');
-        const buffer = Buffer.from(base64, 'base64');
-        const key = this.r2.mediaKey(projectId, postId, type, i, ext);
-        const r2Url = await this.r2.upload(key, buffer, mime);
-        results.push(r2Url ?? url);
-      } else if (url.startsWith('http://') || url.startsWith('https://')) {
-        const ext =
-          this.r2.extensionFromUrl(url) || (type === 'image' ? 'webp' : 'mp4');
-        const key = this.r2.mediaKey(projectId, postId, type, i, ext);
-        const contentType =
-          type === 'image' ? `image/${ext || 'webp'}` : `video/${ext || 'mp4'}`;
-        const r2Url = await this.r2.uploadFromUrl(url, key, contentType);
-        results.push(r2Url);
-      } else {
+      try {
+        if (url.startsWith('data:')) {
+          const [header, base64] = url.split(',');
+          const mime =
+            header.match(/data:([^;]+)/)?.[1] ?? 'application/octet-stream';
+          const ext = mime.split('/')[1] ?? (type === 'image' ? 'webp' : 'mp4');
+          const buffer = Buffer.from(base64, 'base64');
+          const key = this.r2.mediaKey(projectId, postId, type, i, ext);
+          const r2Url = await this.r2.upload(key, buffer, mime);
+          results.push(r2Url ?? url);
+        } else if (url.startsWith('http://') || url.startsWith('https://')) {
+          const ext =
+            this.r2.extensionFromUrl(url) ||
+            (type === 'image' ? 'webp' : 'mp4');
+          const key = this.r2.mediaKey(projectId, postId, type, i, ext);
+          const contentType =
+            type === 'image'
+              ? `image/${ext || 'webp'}`
+              : `video/${ext || 'mp4'}`;
+          const r2Url = await this.r2.uploadFromUrl(url, key, contentType);
+          results.push(r2Url);
+        } else {
+          results.push(url);
+        }
+      } catch {
         results.push(url);
       }
     }

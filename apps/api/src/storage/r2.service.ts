@@ -48,7 +48,7 @@ export class R2Service {
   }
 
   /**
-   * Upload buffer to R2, return public URL or null if not configured.
+   * Upload buffer to R2, return public URL or null if not configured or upload fails.
    */
   async upload(
     key: string,
@@ -60,25 +60,37 @@ export class R2Service {
       return null;
     }
 
-    await this.client.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: body,
-        ContentType: contentType,
-      }),
-    );
-    this.logger.log(`R2 upload success: ${key} (${body.length} bytes)`);
+    try {
+      await this.client.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: body,
+          ContentType: contentType,
+        }),
+      );
+      this.logger.log(`R2 upload success: ${key} (${body.length} bytes)`);
 
-    if (this.publicBaseUrl) {
-      const base = this.publicBaseUrl.replace(/\/$/, '');
-      return `${base}/${key}`;
+      if (this.publicBaseUrl) {
+        const base = this.publicBaseUrl.replace(/\/$/, '');
+        return `${base}/${key}`;
+      }
+      return null;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      const code =
+        err && typeof err === 'object' && 'name' in err
+          ? (err as { name?: string }).name
+          : '';
+      this.logger.error(
+        `R2 upload failed for ${key}: ${code} ${msg}. Check R2_* env vars, bucket "${this.bucket}" exists, and API token has Object Read & Write. Storing original URL.`,
+      );
+      return null;
     }
-    return null;
   }
 
   /**
-   * Fetch from URL and upload to R2. Returns R2 public URL or original URL if R2 not configured.
+   * Fetch from URL and upload to R2. Returns R2 public URL or original URL on failure.
    */
   async uploadFromUrl(
     sourceUrl: string,
@@ -89,13 +101,26 @@ export class R2Service {
       return sourceUrl;
     }
 
-    const res = await fetch(sourceUrl);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch ${sourceUrl}: ${res.status}`);
+    try {
+      const res = await fetch(sourceUrl, {
+        headers: { 'User-Agent': 'AiMarketingPlatform/1.0' },
+      });
+      if (!res.ok) {
+        this.logger.warn(
+          `Failed to fetch ${sourceUrl}: ${res.status}. Storing original URL.`,
+        );
+        return sourceUrl;
+      }
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const url = await this.upload(key, buffer, contentType);
+      return url ?? sourceUrl;
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      this.logger.warn(
+        `Failed to fetch/upload ${sourceUrl}: ${msg}. Storing original URL.`,
+      );
+      return sourceUrl;
     }
-    const buffer = Buffer.from(await res.arrayBuffer());
-    const url = await this.upload(key, buffer, contentType);
-    return url ?? sourceUrl;
   }
 
   /**
