@@ -12,6 +12,7 @@ import type { AuthenticatedUser } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { PostsService } from './posts.service';
 import type { PostResponse } from './posts.types';
+import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 
 @Controller('projects/:projectId/posts')
@@ -40,8 +41,9 @@ export class PostsController {
   create(
     @Param('projectId') projectId: string,
     @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: CreatePostDto = {},
   ): Promise<PostResponse> {
-    return this.postsService.create(projectId, user.userId);
+    return this.postsService.create(projectId, user.userId, dto);
   }
 
   @Patch(':postId')

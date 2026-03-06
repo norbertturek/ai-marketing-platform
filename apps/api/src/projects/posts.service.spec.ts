@@ -111,6 +111,177 @@ describe('PostsService', () => {
     expect(projectsRepo.findByIdForUser).toHaveBeenCalledWith('proj_1', 'u1');
     expect(postsRepo.create).toHaveBeenCalledWith('proj_1');
     expect(result.id).toBe('post_1');
+    expect(postsRepo.update).not.toHaveBeenCalled();
+  });
+
+  it('creates a post with content only', async () => {
+    projectsRepo.findByIdForUser.mockResolvedValue(makeMockProject());
+    const post = makePost();
+    const updated = {
+      ...makePost(),
+      content: 'Hello world',
+      imageUrls: null,
+      videoUrls: null,
+      platform: 'instagram',
+      status: 'draft',
+    };
+    postsRepo.create.mockResolvedValue(post);
+    postsRepo.update.mockResolvedValue(updated);
+
+    const result = await service.create('proj_1', 'u1', {
+      content: 'Hello world',
+      platform: 'instagram',
+    });
+
+    expect(postsRepo.create).toHaveBeenCalledWith('proj_1');
+    expect(postsRepo.update).toHaveBeenCalledWith('post_1', {
+      content: 'Hello world',
+      imageUrls: undefined,
+      videoUrls: undefined,
+      platform: 'instagram',
+      status: 'draft',
+    });
+    expect(result.content).toBe('Hello world');
+  });
+
+  it('creates a post with imageUrls and uploads to R2', async () => {
+    const r2 = {
+      upload: jest.fn(),
+      uploadFromUrl: jest.fn(),
+      mediaKey: jest.fn(
+        (_p: string, _po: string, _t: string, i: number, ext: string) =>
+          `projects/proj_1/posts/post_1/image/${i}.${ext}`,
+      ),
+      extensionFromUrl: jest.fn((url: string) => {
+        const m = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
+        return m ? m[1] : 'webp';
+      }),
+    } as unknown as R2Service;
+    (r2.upload as jest.Mock).mockResolvedValue('https://r2.example/img.webp');
+    (r2.uploadFromUrl as jest.Mock).mockResolvedValue(
+      'https://r2.example/img.webp',
+    );
+
+    const module = await Test.createTestingModule({
+      providers: [
+        PostsService,
+        {
+          provide: PostsRepository,
+          useValue: {
+            findAllByProjectId: jest.fn(),
+            create: jest.fn(),
+            findByIdForUser: jest.fn(),
+            update: jest.fn(),
+          },
+        },
+        {
+          provide: ProjectsRepository,
+          useValue: { findByIdForUser: jest.fn() },
+        },
+        { provide: R2Service, useValue: r2 },
+      ],
+    }).compile();
+
+    const svc = module.get(PostsService);
+    const repo = module.get(PostsRepository);
+    const projRepo = module.get(ProjectsRepository);
+
+    (projRepo.findByIdForUser as jest.Mock).mockResolvedValue(
+      makeMockProject(),
+    );
+    (repo.create as jest.Mock).mockResolvedValue(makePost());
+    (repo.update as jest.Mock).mockResolvedValue({
+      ...makePost(),
+      content: null,
+      imageUrls: '["https://r2.example/img.webp"]',
+      videoUrls: null,
+      platform: null,
+      status: 'draft',
+    });
+
+    const result = await svc.create('proj_1', 'u1', {
+      imageUrls: ['https://example.com/image.webp'],
+    });
+
+    expect(r2.uploadFromUrl).toHaveBeenCalled();
+    expect(result.imageUrls).toContain('https://r2.example/img.webp');
+  });
+
+  it('creates a post with videoUrls', async () => {
+    const r2 = {
+      upload: jest.fn(),
+      uploadFromUrl: jest.fn(),
+      mediaKey: jest.fn(
+        (_p: string, _po: string, _t: string, i: number, ext: string) =>
+          `projects/proj_1/posts/post_1/video/${i}.${ext}`,
+      ),
+      extensionFromUrl: jest.fn((url: string) => {
+        const m = url.match(/\.([a-zA-Z0-9]+)(?:\?|$)/);
+        return m ? m[1] : 'mp4';
+      }),
+    } as unknown as R2Service;
+    (r2.uploadFromUrl as jest.Mock).mockImplementation((url: string) =>
+      Promise.resolve(url.replace('example.com', 'r2.example')),
+    );
+
+    const module = await Test.createTestingModule({
+      providers: [
+        PostsService,
+        {
+          provide: PostsRepository,
+          useValue: {
+            findAllByProjectId: jest.fn(),
+            create: jest.fn(),
+            findByIdForUser: jest.fn(),
+            update: jest.fn(),
+          },
+        },
+        {
+          provide: ProjectsRepository,
+          useValue: { findByIdForUser: jest.fn() },
+        },
+        { provide: R2Service, useValue: r2 },
+      ],
+    }).compile();
+
+    const svc = module.get(PostsService);
+    const repo = module.get(PostsRepository);
+    const projRepo = module.get(ProjectsRepository);
+
+    (projRepo.findByIdForUser as jest.Mock).mockResolvedValue(
+      makeMockProject(),
+    );
+    (repo.create as jest.Mock).mockResolvedValue(makePost());
+    (repo.update as jest.Mock).mockResolvedValue({
+      ...makePost(),
+      content: null,
+      imageUrls: null,
+      videoUrls: '["https://r2.example/video.mp4"]',
+      platform: null,
+      status: 'draft',
+    });
+
+    await svc.create('proj_1', 'u1', {
+      videoUrls: ['https://example.com/video.mp4'],
+    });
+
+    expect(r2.uploadFromUrl).toHaveBeenCalledWith(
+      'https://example.com/video.mp4',
+      expect.any(String),
+      'video/mp4',
+    );
+  });
+
+  it('returns early when create has no content data', async () => {
+    projectsRepo.findByIdForUser.mockResolvedValue(makeMockProject());
+    const post = makePost();
+    postsRepo.create.mockResolvedValue(post);
+
+    const result = await service.create('proj_1', 'u1', {});
+
+    expect(postsRepo.create).toHaveBeenCalledWith('proj_1');
+    expect(postsRepo.update).not.toHaveBeenCalled();
+    expect(result.id).toBe('post_1');
   });
 
   it('throws when project not found for create', async () => {

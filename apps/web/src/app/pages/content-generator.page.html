@@ -487,8 +487,50 @@
           }
         </div>
 
-        <!-- Share -->
-        <div class="w-80 self-start">
+        <!-- Save & Share -->
+        <div class="flex w-80 shrink-0 flex-col gap-4 self-start">
+          <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/95 p-4 backdrop-blur-sm">
+            <label class="mb-2 block text-xs text-zinc-400">
+              @if (isInProjectContext()) {
+                Save to project
+              } @else {
+                Save to project (select project)
+              }
+            </label>
+            @if (!isInProjectContext() && projects().length > 0) {
+              <div class="mb-3 flex flex-wrap gap-2">
+                @for (proj of projects(); track proj.id) {
+                  <button
+                    type="button"
+                    (click)="selectProjectForSave(proj.id)"
+                    class="rounded-lg border px-3 py-1.5 text-xs capitalize transition-all"
+                    [class.border-white]="selectedProjectForSave() === proj.id"
+                    [class.bg-white]="selectedProjectForSave() === proj.id"
+                    [class.text-black]="selectedProjectForSave() === proj.id"
+                    [class.border-zinc-800]="selectedProjectForSave() !== proj.id"
+                    [class.hover:border-zinc-700]="selectedProjectForSave() !== proj.id"
+                    [class.text-zinc-300]="selectedProjectForSave() !== proj.id"
+                  >
+                    {{ proj.name }}
+                  </button>
+                }
+              </div>
+            }
+            @if (!isInProjectContext() && projects().length === 0) {
+              <p class="mb-3 text-xs text-zinc-500">No projects. Create a project to save the post.</p>
+            }
+            <button
+              hlmBtn
+              type="button"
+              variant="outline"
+              class="w-full border-zinc-700 text-white hover:bg-zinc-800"
+              [disabled]="!canSave() || isSaving()"
+              (click)="handleSave()"
+            >
+              <lucide-icon [name]="isSaving() ? 'Loader2' : 'Save'" class="mr-2 size-4" [class.animate-spin]="isSaving()"></lucide-icon>
+              {{ isSaving() ? 'Saving...' : 'Save' }}
+            </button>
+          </div>
           <div class="rounded-lg border border-zinc-800/50 bg-zinc-900/95 p-4 backdrop-blur-sm">
             <label class="mb-2 block text-xs text-zinc-400">Publish platforms:</label>
             <div class="flex flex-wrap gap-2">

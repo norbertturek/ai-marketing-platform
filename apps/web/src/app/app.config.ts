@@ -19,6 +19,8 @@ import {
   Settings,
   Check,
   FileImage,
+  Save,
+  Loader2,
 } from 'lucide-angular';
 import { authInterceptor } from './core/auth/auth.interceptor';
 
@@ -41,6 +43,8 @@ export const LUCIDE_ICONS = {
   Settings,
   Check,
   FileImage,
+  Save,
+  Loader2,
 };
 
 export const appConfig: ApplicationConfig = {

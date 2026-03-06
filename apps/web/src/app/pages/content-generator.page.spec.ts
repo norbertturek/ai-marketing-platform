@@ -7,18 +7,26 @@ import { LucideAngularModule } from 'lucide-angular';
 import { LUCIDE_ICONS } from '../app.config';
 import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
+import { PostsApiService } from '../core/projects/posts-api.service';
 import { ContentGeneratorPage } from './content-generator.page';
 
 describe('ContentGeneratorPage', () => {
   const projectsApiMock = {
     getProject: vi.fn(),
+    getProjects: vi.fn(),
   };
   const creditsApiMock = {
     getCredits: vi.fn(),
   };
+  const postsApiMock = {
+    createPost: vi.fn(),
+    updatePost: vi.fn(),
+  };
 
   beforeEach(async () => {
     projectsApiMock.getProject.mockReset();
+    projectsApiMock.getProjects.mockReset();
+    projectsApiMock.getProjects.mockReturnValue(of([]));
     projectsApiMock.getProject.mockReturnValue(
       of({
         id: 'proj_1',
@@ -34,12 +42,16 @@ describe('ContentGeneratorPage', () => {
     creditsApiMock.getCredits.mockReset();
     creditsApiMock.getCredits.mockReturnValue(of({ balance: 100, usage: [] }));
 
+    postsApiMock.createPost.mockReset();
+    postsApiMock.updatePost.mockReset();
+
     await TestBed.configureTestingModule({
       imports: [ContentGeneratorPage],
       providers: [
         provideRouter([]),
         { provide: ProjectsApiService, useValue: projectsApiMock },
         { provide: CreditsApiService, useValue: creditsApiMock },
+        { provide: PostsApiService, useValue: postsApiMock },
         importProvidersFrom(LucideAngularModule.pick(LUCIDE_ICONS)),
       ],
     }).compileComponents();
@@ -68,5 +80,102 @@ describe('ContentGeneratorPage', () => {
     fixture.detectChanges();
     expect(creditsApiMock.getCredits).toHaveBeenCalled();
     expect(fixture.componentInstance.userCredits()).toBe(100);
+  });
+
+  describe('save behavior', () => {
+    it('canSave is false when no text selected', () => {
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.canSave()).toBe(false);
+    });
+
+    it('canSave is true when text and project context', () => {
+      projectsApiMock.getProject.mockReturnValue(
+        of({
+          id: 'proj_1',
+          name: 'Test',
+          description: '',
+          context: null,
+          postsCount: 0,
+          createdAt: '',
+          updatedAt: '',
+        }),
+      );
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      fixture.componentInstance.textVariants.set(['Hello']);
+      fixture.componentInstance.selectedTextIndex.set(0);
+      fixture.componentInstance.projectId.set('proj_1');
+      fixture.componentInstance.postId.set('post_1');
+      fixture.detectChanges();
+      expect(fixture.componentInstance.canSave()).toBe(true);
+    });
+
+    it('canSave is true when text and project selected for save', () => {
+      projectsApiMock.getProjects.mockReturnValue(
+        of([
+          { id: 'proj_1', name: 'P1', description: '', context: null, postsCount: 0, createdAt: '', updatedAt: '' },
+        ]),
+      );
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      fixture.componentInstance.textVariants.set(['Hello']);
+      fixture.componentInstance.selectedTextIndex.set(0);
+      fixture.componentInstance.projects.set([
+        { id: 'proj_1', name: 'P1', description: '', context: null, postsCount: 0, createdAt: '', updatedAt: '' },
+      ]);
+      fixture.componentInstance.selectProjectForSave('proj_1');
+      fixture.detectChanges();
+      expect(fixture.componentInstance.canSave()).toBe(true);
+    });
+
+    it('handleSave calls updatePost when in project context', () => {
+      postsApiMock.updatePost.mockReturnValue(of({ id: 'post_1', projectId: 'proj_1', content: 'Hi', imageUrls: [], videoUrls: [], platform: null, status: 'draft', createdAt: '', updatedAt: '' }));
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      fixture.componentInstance.textVariants.set(['Hi']);
+      fixture.componentInstance.selectedTextIndex.set(0);
+      fixture.componentInstance.projectId.set('proj_1');
+      fixture.componentInstance.postId.set('post_1');
+      fixture.detectChanges();
+      fixture.componentInstance.handleSave();
+      expect(postsApiMock.updatePost).toHaveBeenCalledWith('proj_1', 'post_1', expect.objectContaining({ content: 'Hi', status: 'draft' }));
+    });
+
+    it('handleSave calls createPost when project selected in playground', () => {
+      postsApiMock.createPost.mockReturnValue(of({ id: 'post_1', projectId: 'proj_1', content: 'Hi', imageUrls: [], videoUrls: [], platform: null, status: 'draft', createdAt: '', updatedAt: '' }));
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      fixture.componentInstance.textVariants.set(['Hi']);
+      fixture.componentInstance.selectedTextIndex.set(0);
+      fixture.componentInstance.projects.set([
+        { id: 'proj_1', name: 'P1', description: '', context: null, postsCount: 0, createdAt: '', updatedAt: '' },
+      ]);
+      fixture.componentInstance.selectProjectForSave('proj_1');
+      fixture.detectChanges();
+      fixture.componentInstance.handleSave();
+      expect(postsApiMock.createPost).toHaveBeenCalledWith('proj_1', expect.objectContaining({ content: 'Hi' }));
+    });
+
+    it('handleSave shows error when in playground and no project selected', () => {
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      fixture.componentInstance.textVariants.set(['Hi']);
+      fixture.componentInstance.selectedTextIndex.set(0);
+      fixture.detectChanges();
+      fixture.componentInstance.handleSave();
+      expect(fixture.componentInstance.errorMessage()).toBe('Select a project to save to');
+      expect(postsApiMock.createPost).not.toHaveBeenCalled();
+    });
+
+    it('selectProjectForSave toggles selection', () => {
+      const fixture = TestBed.createComponent(ContentGeneratorPage);
+      fixture.detectChanges();
+      expect(fixture.componentInstance.selectedProjectForSave()).toBe(null);
+      fixture.componentInstance.selectProjectForSave('proj_1');
+      expect(fixture.componentInstance.selectedProjectForSave()).toBe('proj_1');
+      fixture.componentInstance.selectProjectForSave('proj_1');
+      expect(fixture.componentInstance.selectedProjectForSave()).toBe(null);
+    });
   });
 });
