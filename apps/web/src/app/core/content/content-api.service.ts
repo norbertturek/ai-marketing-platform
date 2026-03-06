@@ -42,6 +42,19 @@ export type GenerateImageResponse = {
   remainingCredits: number;
 };
 
+export type GenerateVideoPayload = {
+  imageUUID?: string;
+  imageData?: string;
+  prompt: string;
+  duration?: number;
+  numberResults?: number;
+};
+
+export type GenerateVideoResponse = {
+  urls: string[];
+  remainingCredits: number;
+};
+
 @Injectable({ providedIn: 'root' })
 export class ContentApiService {
   private readonly http = inject(HttpClient);
@@ -60,6 +73,15 @@ export class ContentApiService {
   ): Observable<GenerateImageResponse> {
     return this.http.post<GenerateImageResponse>(
       `${this.baseUrl}/content/generate-image`,
+      payload
+    );
+  }
+
+  generateVideo(
+    payload: GenerateVideoPayload
+  ): Observable<GenerateVideoResponse> {
+    return this.http.post<GenerateVideoResponse>(
+      `${this.baseUrl}/content/generate-video`,
       payload
     );
   }

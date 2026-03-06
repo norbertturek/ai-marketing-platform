@@ -67,6 +67,7 @@ export class ContentGeneratorPage implements OnInit {
   readonly imageOutputFormat = signal<'JPG' | 'PNG' | 'WEBP'>('WEBP');
   readonly numImageVariants = signal(1);
   readonly imageVariants = signal<string[]>([]);
+  readonly imageUUIDs = signal<string[]>([]);
   readonly selectedImageIndex = signal<number | null>(null);
   readonly isGeneratingImage = signal(false);
   readonly uploadedImage = signal<string | null>(null);
@@ -262,6 +263,7 @@ export class ContentGeneratorPage implements OnInit {
         }),
       );
       this.imageVariants.set(res.urls);
+      this.imageUUIDs.set(res.imageUUIDs);
       this.selectedImageIndex.set(0);
       this.userCredits.set(res.remainingCredits);
     } catch (err) {
@@ -286,6 +288,7 @@ export class ContentGeneratorPage implements OnInit {
         const data = reader.result as string;
         this.uploadedImage.set(data);
         this.imageVariants.set([data]);
+        this.imageUUIDs.set([]);
         this.selectedImageIndex.set(0);
       };
       reader.readAsDataURL(file);
@@ -303,21 +306,46 @@ export class ContentGeneratorPage implements OnInit {
       this.setError(`Insufficient credits! You need ${cost} credits.`);
       return;
     }
+    const image = this.selectedImage();
+    if (!image) {
+      this.setError('Choose an image first');
+      return;
+    }
+
     this.isGeneratingVideo.set(true);
     this.videoVariants.set([]);
     this.selectedVideoIndex.set(null);
     this.setError(null);
-    await new Promise((r) => setTimeout(r, 4000));
-    const variants: string[] = [];
-    for (let i = 0; i < this.numVideoVariants(); i++) {
-      variants.push(
-        `https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4?v=${i}`,
+
+    const idx = this.selectedImageIndex();
+    const uuids = this.imageUUIDs();
+    const imageUUID = idx !== null && uuids[idx] ? uuids[idx] : undefined;
+    const imageData = this.uploadedImage() ?? undefined;
+    const payload = {
+      prompt: this.imagePrompt().trim() || 'Smooth motion',
+      duration: parseInt(this.videoDuration(), 10) || 5,
+      numberResults: this.numVideoVariants(),
+      ...(imageUUID ? { imageUUID } : { imageData: image }),
+    };
+
+    try {
+      const res = await firstValueFrom(
+        this.contentApi.generateVideo(payload),
       );
+      this.videoVariants.set(res.urls);
+      this.selectedVideoIndex.set(0);
+      this.userCredits.set(res.remainingCredits);
+    } catch (err) {
+      const msg =
+        err instanceof HttpErrorResponse
+          ? ((err.error as { message?: string })?.message ?? err.message)
+          : err instanceof Error
+            ? err.message
+            : 'Video generation error';
+      this.setError(msg);
+    } finally {
+      this.isGeneratingVideo.set(false);
     }
-    this.videoVariants.set(variants);
-    this.selectedVideoIndex.set(0);
-    this.userCredits.update((c) => c - cost);
-    this.isGeneratingVideo.set(false);
   }
 
   togglePlatform(p: Platform): void {
