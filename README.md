@@ -38,6 +38,7 @@ pnpm dev                                 # web (4200) + api (3000)
 **Tests:**
 - Web: `pnpm --filter web test` (Vitest)
 - API: `pnpm --filter api test -- --watchAll=false` (Jest)
+- E2E: `pnpm docker:up` then `pnpm test:e2e` (Playwright)
 
 **Prisma (from `apps/api` or `pnpm --filter api`):**
 - `prisma:migrate` — run migrations

@@ -1,0 +1,15 @@
+---
+description: Playwright e2e tests — run after full-stack changes, requires Docker
+globs: e2e/**/*.ts, playwright.config.ts
+alwaysApply: false
+---
+
+# Playwright E2E
+
+- **Prerequisite:** Run `pnpm docker:up` before e2e — Postgres must be available for auth/projects.
+- **Commands:** `pnpm test:e2e` (headless), `pnpm test:e2e:ui` (UI mode).
+- **Config:** `playwright.config.ts` — webServer runs `pnpm dev`, baseURL `http://localhost:4200`.
+- **Tests:** `e2e/auth.spec.ts`, `e2e/projects.spec.ts`, `e2e/playground.spec.ts`.
+- **Selectors:** Prefer `getByRole`, `getByPlaceholder`, `getByText` for resilience.
+- **When adding e2e:** Cover happy path first; use unique emails (`Date.now()`) for signup to avoid conflicts.
+- **When e2e fails:** Check Docker is up, API has DB connection; fix source code, not tests.
