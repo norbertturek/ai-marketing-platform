@@ -61,6 +61,7 @@ export class PostsService {
     }
     const post = await this.postsRepository.create(projectId);
 
+    // If copyMediaToR2 throws, the post remains empty (no transaction). Caller should retry or handle.
     const hasContent =
       data &&
       (data.content ||

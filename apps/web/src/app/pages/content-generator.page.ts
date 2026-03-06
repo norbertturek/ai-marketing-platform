@@ -373,7 +373,7 @@ export class ContentGeneratorPage implements OnInit {
     } else {
       const selectedProject = this.selectedProjectForSave();
       if (!selectedProject) {
-        this.setError('Wybierz projekt do zapisania');
+        this.setError('Select a project to save to');
         return;
       }
       this.saveNewPost(selectedProject, payload);
@@ -397,7 +397,7 @@ export class ContentGeneratorPage implements OnInit {
         error: (err) => {
           this.isSaving.set(false);
           const msg =
-            err?.error?.message ?? err?.message ?? 'Nie udało się zapisać posta.';
+            err?.error?.message ?? err?.message ?? 'Failed to save post.';
           this.setError(msg);
         },
       });
@@ -417,7 +417,7 @@ export class ContentGeneratorPage implements OnInit {
       error: (err) => {
         this.isSaving.set(false);
         const msg =
-          err?.error?.message ?? err?.message ?? 'Nie udało się zapisać posta.';
+          err?.error?.message ?? err?.message ?? 'Failed to save post.';
         this.setError(msg);
       },
     });
