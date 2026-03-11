@@ -28,6 +28,18 @@ export class GenerateImageDto {
   model?: string = 'runware:101@1';
 
   @IsOptional()
+  @IsString()
+  seedImage?: string;
+
+  @IsOptional()
+  @IsString()
+  maskImage?: string;
+
+  @IsOptional()
+  @IsString()
+  guideImage?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(WIDTH_HEIGHT_MIN)
