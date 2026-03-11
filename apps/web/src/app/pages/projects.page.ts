@@ -6,6 +6,7 @@ import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   CreateProjectPayload,
+  ProjectSettings,
   ProjectResponse,
   ProjectsApiService,
 } from '../core/projects/projects-api.service';
@@ -83,6 +84,134 @@ import {
               placeholder="Tone, style, brand guidelines..."
             ></textarea>
           </div>
+
+          <details class="rounded-lg border border-zinc-800 bg-zinc-900/50 p-3">
+            <summary class="cursor-pointer text-sm text-zinc-300">
+              Project generation configuration
+            </summary>
+            <div class="mt-3 grid gap-3 md:grid-cols-2">
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Default platform</label>
+                <select formControlName="defaultPlatform" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="instagram">Instagram</option>
+                  <option value="facebook">Facebook</option>
+                  <option value="linkedin">LinkedIn</option>
+                  <option value="twitter">Twitter</option>
+                  <option value="tiktok">TikTok</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">AI model</label>
+                <select formControlName="defaultAiModel" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="gpt-4o-mini">gpt-4o-mini</option>
+                  <option value="gpt-4o">gpt-4o</option>
+                  <option value="gpt-4-turbo">gpt-4-turbo</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Text variants</label>
+                <select formControlName="defaultNumTextVariants" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Max length</label>
+                <input formControlName="defaultMaxLength" type="number" min="50" max="2000" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Temperature</label>
+                <input formControlName="defaultTemperature" type="number" step="0.1" min="0" max="2" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Image model</label>
+                <input formControlName="defaultImageModel" type="text" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white" />
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Image aspect ratio</label>
+                <select formControlName="defaultAspectRatio" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="1:1">1:1</option>
+                  <option value="16:9">16:9</option>
+                  <option value="9:16">9:16</option>
+                  <option value="4:5">4:5</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Image output format</label>
+                <select formControlName="defaultImageOutputFormat" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="WEBP">WEBP</option>
+                  <option value="PNG">PNG</option>
+                  <option value="JPG">JPG</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Image variants</label>
+                <select formControlName="defaultNumImageVariants" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Video model</label>
+                <select formControlName="defaultVideoModel" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  @for (m of videoModelOptions; track m.id) {
+                    <option [value]="m.id">{{ m.label }}</option>
+                  }
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Video duration</label>
+                <select formControlName="defaultVideoDuration" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="3">3s</option>
+                  <option value="5">5s</option>
+                  <option value="10">10s</option>
+                  <option value="15">15s</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Video variants</label>
+                <select formControlName="defaultNumVideoVariants" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Motion intensity</label>
+                <select formControlName="defaultMotionIntensity" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">Camera movement</label>
+                <select formControlName="defaultCameraMovement" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="static">Static</option>
+                  <option value="pan">Pan</option>
+                  <option value="zoom">Zoom</option>
+                  <option value="dolly">Dolly</option>
+                </select>
+              </div>
+              <div>
+                <label class="mb-1 block text-xs text-zinc-400">FPS</label>
+                <select formControlName="defaultFps" class="h-10 w-full rounded-lg border border-zinc-800 bg-zinc-900 px-3 text-sm text-white">
+                  <option value="24">24</option>
+                  <option value="30">30</option>
+                  <option value="60">60</option>
+                </select>
+              </div>
+              <label class="mt-2 inline-flex items-center gap-2 text-xs text-zinc-400">
+                <input type="checkbox" formControlName="defaultLoopVideo" class="size-4 rounded border-zinc-700" />
+                Loop video by default
+              </label>
+            </div>
+          </details>
 
           @if (createErrorMessage()) {
             <p class="text-sm text-red-400">{{ createErrorMessage() }}</p>
@@ -184,6 +313,22 @@ export class ProjectsPage implements OnInit {
   readonly isSubmitting = signal(false);
   readonly showCreateForm = signal(false);
   readonly projects = signal<ProjectResponse[]>([]);
+  readonly videoModelOptions = [
+    { id: 'klingai:1@1', label: 'KlingAI 1.0 Standard' },
+    { id: 'klingai:1@2', label: 'KlingAI 1.0 Pro' },
+    { id: 'klingai:2@1', label: 'KlingAI 1.5 Standard' },
+    { id: 'klingai:2@2', label: 'KlingAI 1.5 Pro' },
+    { id: 'klingai:3@1', label: 'KlingAI 1.6 Standard' },
+    { id: 'klingai:3@2', label: 'KlingAI 1.6 Pro' },
+    { id: 'klingai:5@1', label: 'KlingAI 2.1 Standard' },
+    { id: 'klingai:5@2', label: 'KlingAI 2.1 Pro' },
+    { id: 'klingai:5@3', label: 'KlingAI 2.1 Master' },
+    { id: 'klingai:6@0', label: 'KlingAI 2.5 Turbo Standard' },
+    { id: 'klingai:6@1', label: 'KlingAI 2.5 Turbo Pro' },
+    { id: 'klingai:kling-video@2.6-pro', label: 'Kling VIDEO 2.6 Pro' },
+    { id: 'klingai:kling-video@3-standard', label: 'Kling VIDEO 3.0 Standard' },
+    { id: 'klingai:kling-video@3-pro', label: 'Kling VIDEO 3.0 Pro' },
+  ] as const;
 
   readonly form = new FormGroup({
     name: new FormControl('', {
@@ -198,6 +343,35 @@ export class ProjectsPage implements OnInit {
       nonNullable: true,
       validators: [Validators.maxLength(10000)],
     }),
+    defaultPlatform: new FormControl<'facebook' | 'instagram' | 'linkedin' | 'twitter' | 'tiktok'>(
+      'instagram',
+      { nonNullable: true },
+    ),
+    defaultAiModel: new FormControl<'gpt-4o-mini' | 'gpt-4o' | 'gpt-4-turbo'>('gpt-4o-mini', {
+      nonNullable: true,
+    }),
+    defaultNumTextVariants: new FormControl('1', { nonNullable: true }),
+    defaultMaxLength: new FormControl('150', { nonNullable: true }),
+    defaultTemperature: new FormControl('0.7', { nonNullable: true }),
+    defaultImageModel: new FormControl('runware:101@1', { nonNullable: true }),
+    defaultAspectRatio: new FormControl<'1:1' | '16:9' | '9:16' | '4:5'>('1:1', {
+      nonNullable: true,
+    }),
+    defaultImageOutputFormat: new FormControl<'JPG' | 'PNG' | 'WEBP'>('WEBP', {
+      nonNullable: true,
+    }),
+    defaultNumImageVariants: new FormControl('1', { nonNullable: true }),
+    defaultVideoModel: new FormControl('klingai:1@1', { nonNullable: true }),
+    defaultVideoDuration: new FormControl('5', { nonNullable: true }),
+    defaultNumVideoVariants: new FormControl('1', { nonNullable: true }),
+    defaultMotionIntensity: new FormControl<'low' | 'medium' | 'high'>('medium', {
+      nonNullable: true,
+    }),
+    defaultCameraMovement: new FormControl<'static' | 'pan' | 'zoom' | 'dolly'>('static', {
+      nonNullable: true,
+    }),
+    defaultFps: new FormControl<'24' | '30' | '60'>('30', { nonNullable: true }),
+    defaultLoopVideo: new FormControl(false, { nonNullable: true }),
   });
 
   ngOnInit(): void {
@@ -230,6 +404,22 @@ export class ProjectsPage implements OnInit {
       name: '',
       description: '',
       context: '',
+      defaultPlatform: 'instagram',
+      defaultAiModel: 'gpt-4o-mini',
+      defaultNumTextVariants: '1',
+      defaultMaxLength: '150',
+      defaultTemperature: '0.7',
+      defaultImageModel: 'runware:101@1',
+      defaultAspectRatio: '1:1',
+      defaultImageOutputFormat: 'WEBP',
+      defaultNumImageVariants: '1',
+      defaultVideoModel: 'klingai:1@1',
+      defaultVideoDuration: '5',
+      defaultNumVideoVariants: '1',
+      defaultMotionIntensity: 'medium',
+      defaultCameraMovement: 'static',
+      defaultFps: '30',
+      defaultLoopVideo: false,
     });
   }
 
@@ -247,6 +437,7 @@ export class ProjectsPage implements OnInit {
       name: payload.name.trim(),
       description: payload.description.trim() || undefined,
       context: payload.context.trim() || undefined,
+      settings: this.buildProjectSettings(payload),
     };
 
     this.projectsApi.createProject(body).subscribe({
@@ -281,9 +472,36 @@ export class ProjectsPage implements OnInit {
   }
 
   private mapCreateError(error: unknown): string {
-    if (error instanceof HttpErrorResponse && error.status === 400) {
-      return 'Invalid project data. Please check the form.';
+    if (error instanceof HttpErrorResponse) {
+      const backendMessage = (error.error as { message?: string } | null)?.message;
+      if (typeof backendMessage === 'string' && backendMessage.trim().length > 0) {
+        return backendMessage;
+      }
+      if (error.status === 400) {
+        return 'Invalid project data. Please check the form.';
+      }
     }
     return 'Could not create project. Please try again.';
+  }
+
+  private buildProjectSettings(payload: ReturnType<ProjectsPage['form']['getRawValue']>): ProjectSettings {
+    return {
+      defaultPlatform: payload.defaultPlatform,
+      defaultAiModel: payload.defaultAiModel,
+      defaultNumTextVariants: Number.parseInt(payload.defaultNumTextVariants, 10) || 1,
+      defaultMaxLength: Number.parseInt(payload.defaultMaxLength, 10) || 150,
+      defaultTemperature: Number.parseFloat(payload.defaultTemperature) || 0.7,
+      defaultImageModel: payload.defaultImageModel.trim() || 'runware:101@1',
+      defaultAspectRatio: payload.defaultAspectRatio,
+      defaultImageOutputFormat: payload.defaultImageOutputFormat,
+      defaultNumImageVariants: Number.parseInt(payload.defaultNumImageVariants, 10) || 1,
+      defaultVideoModel: payload.defaultVideoModel.trim() || 'klingai:1@1',
+      defaultVideoDuration: Number.parseInt(payload.defaultVideoDuration, 10) || 5,
+      defaultNumVideoVariants: Number.parseInt(payload.defaultNumVideoVariants, 10) || 1,
+      defaultMotionIntensity: payload.defaultMotionIntensity,
+      defaultCameraMovement: payload.defaultCameraMovement,
+      defaultFps: payload.defaultFps,
+      defaultLoopVideo: payload.defaultLoopVideo,
+    };
   }
 }

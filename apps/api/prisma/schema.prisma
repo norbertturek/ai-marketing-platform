@@ -18,7 +18,7 @@ model User {
   email            String        @unique
   passwordHash     String
   refreshTokenHash String?
-  credits          Int           @default(100)
+  credits          Int           @default(500)
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
   projects         Project[]
@@ -43,6 +43,8 @@ model Project {
   description String   @default("")
   /// Brand voice, tone, and guidelines for AI content generation
   context     String?
+  /// Optional per-project defaults for content generation (platform, models, media options)
+  settings    Json?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts       Post[]

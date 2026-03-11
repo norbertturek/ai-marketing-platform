@@ -16,6 +16,16 @@
       </div>
     </div>
     <div class="flex flex-shrink-0 items-center gap-2">
+      @if (projectId()) {
+      <button hlmBtn variant="outline" size="sm" class="border-zinc-800 hover:bg-zinc-800"
+        [disabled]="isSavingProjectSettings()" (click)="handleSaveProjectSettings()">
+        @if (isSavingProjectSettings()) {
+        Saving defaults...
+        } @else {
+        Save defaults
+        }
+      </button>
+      }
       @if (totalUsedCost() > 0) {
       <div class="hidden items-center gap-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3 py-1.5 sm:flex">
         <span class="text-xs text-zinc-500">Used</span>
@@ -35,6 +45,11 @@
   @if (errorMessage()) {
   <div class="border-b border-red-900/50 bg-red-950/20 px-4 py-2 text-sm text-red-300">
     {{ errorMessage() }}
+  </div>
+  }
+  @if (projectSettingsMessage()) {
+  <div class="border-b border-zinc-800/50 bg-zinc-900/30 px-4 py-2 text-sm text-zinc-300">
+    {{ projectSettingsMessage() }}
   </div>
   }
 
@@ -154,7 +169,12 @@
 
             <div class="flex flex-1 flex-col gap-3 overflow-y-auto pr-2">
               <div>
-                <label class="mb-1.5 block text-xs text-zinc-400">Image Prompt</label>
+                <label class="mb-1.5 block text-xs text-zinc-400">
+                  Image Prompt
+                  @if (selectedImageModelCapability()?.id === 'runware:105@1') {
+                    <span class="text-zinc-500">(optional for FLUX Redux)</span>
+                  }
+                </label>
                 <textarea [value]="imagePrompt()" (input)="imagePrompt.set($any($event.target).value)"
                   [class]="textareaClass" placeholder="Image description..." rows="2"></textarea>
               </div>
@@ -162,24 +182,52 @@
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Negative Prompt</label>
                 <textarea [value]="negativePrompt()" (input)="negativePrompt.set($any($event.target).value)"
+                  [disabled]="isGeneratingImage() || selectedImageModelCapability()?.supportsNegativePrompt === false"
                   [class]="textareaClass" placeholder="What you don't want in the image..." rows="2"></textarea>
               </div>
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Model (Runware)</label>
-                <select [value]="imageModel()" (change)="imageModel.set($any($event.target).value)"
-                  [disabled]="!canGenerateImage()" [class]="inputClass + ' cursor-pointer'">
-                  @for (m of runwareImageModels; track m.id) {
+                <select [value]="imageModel()" (change)="handleImageModelChange($any($event.target).value)"
+                  [disabled]="isGeneratingImage()" [class]="inputClass + ' cursor-pointer'">
+                  @for (m of imageModelCapabilities(); track m.id) {
                   <option [value]="m.id">{{ m.label }}</option>
                   }
                 </select>
+                @if (selectedImageModelCapability(); as cap) {
+                  <p class="mt-1 text-xs text-zinc-500">{{ cap.description }}</p>
+                }
               </div>
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Custom AI model ID (optional)</label>
                 <input type="text" [value]="customImageModel()"
                   (input)="customImageModel.set($any($event.target).value)" [class]="inputClass"
-                  placeholder="e.g. civitai:123@456" [disabled]="!canGenerateImage()" />
+                  placeholder="e.g. civitai:123@456" [disabled]="isGeneratingImage()" />
               </div>
+              @if (selectedImageModelCapability()?.requiredInputs?.includes('seedImage')) {
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Seed image URL or UUID</label>
+                <input type="text" [value]="seedImage()" (input)="seedImage.set($any($event.target).value)"
+                  [class]="inputClass" [disabled]="isGeneratingImage()"
+                  placeholder="https://... or image UUID" />
+              </div>
+              }
+              @if (selectedImageModelCapability()?.requiredInputs?.includes('maskImage')) {
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Mask image URL or UUID</label>
+                <input type="text" [value]="maskImage()" (input)="maskImage.set($any($event.target).value)"
+                  [class]="inputClass" [disabled]="isGeneratingImage()"
+                  placeholder="https://... or image UUID" />
+              </div>
+              }
+              @if (selectedImageModelCapability()?.requiredInputs?.includes('guideImage')) {
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Guide image URL or UUID</label>
+                <input type="text" [value]="guideImage()" (input)="guideImage.set($any($event.target).value)"
+                  [class]="inputClass" [disabled]="isGeneratingImage()"
+                  placeholder="https://... or image UUID" />
+              </div>
+              }
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Aspect Ratio</label>
@@ -229,7 +277,7 @@
 
               <input #fileInput type="file" accept="image/*" (change)="onImageUpload($event)" class="hidden" />
               <button hlmBtn variant="outline" size="sm" type="button"
-                class="w-full border-zinc-800 hover:bg-zinc-800 text-white" [disabled]="!canGenerateImage()"
+                class="w-full border-zinc-800 hover:bg-zinc-800 text-white" [disabled]="isGeneratingImage()"
                 (click)="fileInput.click()">
                 <lucide-icon name="Upload" class="mr-2 size-3"></lucide-icon>
                 Or upload your own image
@@ -288,18 +336,30 @@
             </div>
 
             <div class="flex flex-1 flex-col gap-3 overflow-y-auto pr-2">
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Video model</label>
+                <select [value]="videoModel()" (change)="handleVideoModelChange($any($event.target).value)"
+                  [disabled]="!canGenerateVideo()" [class]="inputClass + ' cursor-pointer'">
+                  @for (m of videoModelCapabilities(); track m.id) {
+                  <option [value]="m.id">{{ m.label }}</option>
+                  }
+                </select>
+                @if (selectedVideoModelCapability(); as cap) {
+                  <p class="mt-1 text-xs text-zinc-500">{{ cap.description }}</p>
+                }
+              </div>
               <div class="grid grid-cols-2 gap-2">
                 <div>
                   <label class="mb-1.5 block text-xs text-zinc-400">Duration</label>
                   <select [value]="videoDuration()" (change)="videoDuration.set($any($event.target).value)"
                     [disabled]="!canGenerateVideo()" [class]="inputClass + ' cursor-pointer'">
-                    <option value="3">3s</option>
-                    <option value="5">5s</option>
-                    <option value="10">10s</option>
+                    @for (d of videoDurationOptions(); track d) {
+                    <option [value]="d">{{ d }}s</option>
+                    }
                   </select>
                 </div>
                 <div>
-                  <label class="mb-1.5 block text-xs text-zinc-400">FPS</label>
+                  <label class="mb-1.5 block text-xs text-zinc-400">FPS (preview only)</label>
                   <select [value]="fps()" (change)="fps.set($any($event.target).value)" [disabled]="!canGenerateVideo()"
                     [class]="inputClass + ' cursor-pointer'">
                     <option value="24">24 FPS</option>
@@ -308,6 +368,39 @@
                   </select>
                 </div>
               </div>
+
+              @if (!shouldInferVideoDimensions()) {
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Resolution</label>
+                <select [value]="videoResolution()" (change)="videoResolution.set($any($event.target).value)"
+                  [disabled]="!canGenerateVideo()" [class]="inputClass + ' cursor-pointer'">
+                  @for (r of videoResolutionOptions(); track r.width + '-' + r.height) {
+                  <option [value]="r.width + 'x' + r.height">{{ r.label }}</option>
+                  }
+                </select>
+              </div>
+              } @else {
+              <p class="text-xs text-zinc-500">
+                Resolution is inferred from your input image for this model.
+              </p>
+              }
+
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">Negative prompt</label>
+                <textarea [value]="videoNegativePrompt()"
+                  (input)="videoNegativePrompt.set($any($event.target).value)"
+                  [disabled]="!canGenerateVideo() || selectedVideoModelCapability()?.supportsNegativePrompt === false"
+                  [class]="textareaClass" placeholder="Optional: unwanted motion/content..." rows="2"></textarea>
+              </div>
+
+              @if (showVideoCfgScale()) {
+              <div>
+                <label class="mb-1.5 block text-xs text-zinc-400">CFG Scale: {{ videoCfgScale() }}</label>
+                <input type="range" min="0" max="1" step="0.05" [value]="videoCfgScale()"
+                  (input)="videoCfgScale.set(+$any($event.target).value)" [disabled]="!canGenerateVideo()"
+                  class="w-full" />
+              </div>
+              }
 
               <div>
                 <label class="mb-1.5 block text-xs text-zinc-400">Motion Intensity</label>
@@ -361,6 +454,9 @@
                 Generate video
                 }
               </button>
+              @if (videoGenerationStatus()) {
+              <p class="mt-2 text-xs text-zinc-400">{{ videoGenerationStatus() }}</p>
+              }
 
               @if (videoVariants().length > 0) {
               <div class="mt-4 space-y-2">

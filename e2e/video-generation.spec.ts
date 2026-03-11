@@ -61,13 +61,46 @@ test.describe('Video generation', () => {
       });
     });
 
-    await page.route('**/api/content/generate-video', async (route) => {
+    await page.route('**/api/content/generate-video/start', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
+          taskUUIDs: ['task-1'],
+          remainingCredits: 85,
+        }),
+      });
+    });
+
+    let statusCalls = 0;
+    await page.route('**/api/content/generate-video/status', async (route) => {
+      statusCalls += 1;
+      if (statusCalls === 1) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            done: false,
+            urls: [],
+            items: [{ taskUUID: 'task-1', status: 'processing' }],
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          done: true,
           urls: [TEST_VIDEO_URL],
-          remainingCredits: 45,
+          items: [
+            {
+              taskUUID: 'task-1',
+              status: 'success',
+              videoURL: TEST_VIDEO_URL,
+            },
+          ],
         }),
       });
     });

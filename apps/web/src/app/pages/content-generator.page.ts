@@ -17,19 +17,30 @@ import {
   PLATFORM_SIZES,
   Platform,
   PlatformSize,
-  RUNWARE_IMAGE_MODELS,
 } from './content-generator.types';
-import { ContentApiService } from '../core/content/content-api.service';
+import {
+  ContentApiService,
+  RunwareImageModelCapability,
+  RunwareVideoModelCapability,
+  VideoResolution,
+} from '../core/content/content-api.service';
 import { CreditsApiService } from '../core/credits/credits-api.service';
 import { ProjectsApiService } from '../core/projects/projects-api.service';
 import { PostsApiService } from '../core/projects/posts-api.service';
-import type { ProjectResponse } from '../core/projects/projects-api.service';
+import type {
+  ProjectResponse,
+  ProjectSettings,
+} from '../core/projects/projects-api.service';
 import { firstValueFrom } from 'rxjs';
 
 const INPUT_CLASS =
   'h-8 w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 text-xs text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500 disabled:opacity-50';
 const TEXTAREA_CLASS =
   'min-h-[60px] w-full rounded-lg border border-zinc-800 bg-zinc-900/50 px-3 py-2 text-sm text-white outline-none ring-zinc-500/40 transition focus-visible:ring-[3px] placeholder:text-zinc-500 resize-none disabled:opacity-50';
+const VIDEO_STATUS_POLL_INTERVAL_MS = 30000;
+const VIDEO_STATUS_MAX_WAIT_MS = 10 * 60 * 1000;
+const DEFAULT_IMAGE_MODEL = 'runware:101@1';
+const DEFAULT_VIDEO_MODEL = 'klingai:1@1';
 
 @Component({
   selector: 'app-content-generator-page',
@@ -57,10 +68,15 @@ export class ContentGeneratorPage implements OnInit {
   readonly numTextVariants = signal(1);
   readonly isGeneratingText = signal(false);
 
+  readonly imageModelCapabilities = signal<RunwareImageModelCapability[]>([]);
+  readonly videoModelCapabilities = signal<RunwareVideoModelCapability[]>([]);
   readonly imagePrompt = signal('');
   readonly negativePrompt = signal('');
-  readonly imageModel = signal(RUNWARE_IMAGE_MODELS[0].id);
+  readonly imageModel = signal(DEFAULT_IMAGE_MODEL);
   readonly customImageModel = signal('');
+  readonly seedImage = signal('');
+  readonly maskImage = signal('');
+  readonly guideImage = signal('');
   readonly aspectRatio = signal('1:1');
   readonly cfgScale = signal(7.5);
   readonly steps = signal(30);
@@ -72,7 +88,11 @@ export class ContentGeneratorPage implements OnInit {
   readonly isGeneratingImage = signal(false);
   readonly uploadedImage = signal<string | null>(null);
 
+  readonly videoModel = signal(DEFAULT_VIDEO_MODEL);
   readonly videoDuration = signal('5');
+  readonly videoResolution = signal('');
+  readonly videoNegativePrompt = signal('');
+  readonly videoCfgScale = signal(0.5);
   readonly motionIntensity = signal('medium');
   readonly cameraMovement = signal('static');
   readonly fps = signal('30');
@@ -81,6 +101,7 @@ export class ContentGeneratorPage implements OnInit {
   readonly videoVariants = signal<string[]>([]);
   readonly selectedVideoIndex = signal<number | null>(null);
   readonly isGeneratingVideo = signal(false);
+  readonly videoGenerationStatus = signal<string | null>(null);
 
   readonly aiModel = signal('gpt-4o-mini');
   readonly platform = signal<Platform>('instagram');
@@ -92,13 +113,14 @@ export class ContentGeneratorPage implements OnInit {
   readonly selectedPlatforms = signal<Platform[]>([]);
   readonly errorMessage = signal<string | null>(null);
   readonly isSaving = signal(false);
+  readonly isSavingProjectSettings = signal(false);
+  readonly projectSettingsMessage = signal<string | null>(null);
   readonly projects = signal<ProjectResponse[]>([]);
   readonly selectedProjectForSave = signal<string | null>(null);
 
   readonly inputClass = INPUT_CLASS;
   readonly textareaClass = TEXTAREA_CLASS;
   readonly platformsList: Platform[] = ['facebook', 'instagram', 'linkedin', 'twitter', 'tiktok'];
-  readonly runwareImageModels = RUNWARE_IMAGE_MODELS;
 
   contentCount(): number {
     return [this.selectedText(), this.selectedImage(), this.selectedVideo()].filter(
@@ -125,7 +147,56 @@ export class ContentGeneratorPage implements OnInit {
     const vars = this.videoVariants();
     return idx !== null && vars[idx] !== undefined ? vars[idx] : null;
   });
-  readonly canGenerateImage = computed(() => this.imagePrompt().trim().length > 0);
+  readonly selectedImageModelCapability = computed(() => {
+    if (this.customImageModel().trim()) {
+      return null;
+    }
+    return (
+      this.imageModelCapabilities().find((model) => model.id === this.imageModel()) ??
+      null
+    );
+  });
+  readonly selectedVideoModelCapability = computed(() =>
+    this.videoModelCapabilities().find((model) => model.id === this.videoModel()) ?? null,
+  );
+  readonly videoDurationOptions = computed(() => {
+    const capability = this.selectedVideoModelCapability();
+    return capability?.durationOptions ?? [5, 10];
+  });
+  readonly videoResolutionOptions = computed(() => {
+    const capability = this.selectedVideoModelCapability();
+    return capability?.resolutions ?? [];
+  });
+  readonly shouldInferVideoDimensions = computed(
+    () => this.selectedVideoModelCapability()?.inferDimensionsFromImage ?? false,
+  );
+  readonly showVideoCfgScale = computed(
+    () => this.selectedVideoModelCapability()?.supportsCfgScale ?? false,
+  );
+  readonly canGenerateImage = computed(() => {
+    const capability = this.customImageModel().trim()
+      ? null
+      : this.selectedImageModelCapability();
+    const hasPrompt = this.imagePrompt().trim().length > 0;
+    const hasSeedImage = this.seedImage().trim().length > 0;
+    const hasMaskImage = this.maskImage().trim().length > 0;
+    const hasGuideImage = this.guideImage().trim().length > 0;
+
+    if (capability?.requiredInputs.includes('seedImage') && !hasSeedImage) {
+      return false;
+    }
+    if (capability?.requiredInputs.includes('maskImage') && !hasMaskImage) {
+      return false;
+    }
+    if (capability?.requiredInputs.includes('guideImage') && !hasGuideImage) {
+      return false;
+    }
+
+    if (capability?.id === 'runware:105@1') {
+      return hasGuideImage;
+    }
+    return hasPrompt;
+  });
   readonly canGenerateVideo = computed(() => this.selectedImageIndex() !== null);
   readonly hasContent = computed(() => this.selectedText() !== null);
 
@@ -150,6 +221,8 @@ export class ContentGeneratorPage implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadCapabilities();
+
     this.route.paramMap.subscribe((params) => {
       const pid = params.get('projectId');
       const postId = params.get('postId');
@@ -157,7 +230,10 @@ export class ContentGeneratorPage implements OnInit {
       this.postId.set(postId);
       if (pid) {
         this.projectsApi.getProject(pid).subscribe({
-          next: (p) => this.projectName.set(p.name),
+          next: (p) => {
+            this.projectName.set(p.name);
+            this.applyProjectSettings(p.settings);
+          },
           error: () => this.projectName.set('Playground'),
         });
       }
@@ -176,6 +252,33 @@ export class ContentGeneratorPage implements OnInit {
 
     this.projectsApi.getProjects().subscribe({
       next: (list) => this.projects.set(list),
+    });
+  }
+
+  private loadCapabilities(): void {
+    this.contentApi.getCapabilities().subscribe({
+      next: (caps) => {
+        this.imageModelCapabilities.set(caps.imageModels);
+        this.videoModelCapabilities.set(caps.videoModels);
+
+        const selectedImage = this.customImageModel().trim()
+          ? this.customImageModel().trim()
+          : this.imageModel();
+        const hasImageModel = caps.imageModels.some((item) => item.id === selectedImage);
+        if (!hasImageModel) {
+          if (selectedImage) {
+            this.customImageModel.set(selectedImage);
+          }
+          this.imageModel.set(caps.defaults.imageModel || DEFAULT_IMAGE_MODEL);
+        }
+
+        const hasVideoModel = caps.videoModels.some((item) => item.id === this.videoModel());
+        if (!hasVideoModel) {
+          this.videoModel.set(caps.defaults.videoModel || DEFAULT_VIDEO_MODEL);
+        }
+
+        this.syncVideoModelDefaults();
+      },
     });
   }
 
@@ -201,6 +304,91 @@ export class ContentGeneratorPage implements OnInit {
     if (post.platform && ['facebook', 'instagram', 'linkedin', 'twitter', 'tiktok'].includes(post.platform)) {
       this.platform.set(post.platform as Platform);
     }
+  }
+
+  private applyProjectSettings(settings: ProjectSettings | null): void {
+    if (!settings) return;
+
+    if (settings.defaultPlatform) {
+      this.platform.set(settings.defaultPlatform);
+      this.selectedSize.set(PLATFORM_SIZES[settings.defaultPlatform][0]);
+    }
+    if (settings.defaultAiModel) this.aiModel.set(settings.defaultAiModel);
+    if (typeof settings.defaultNumTextVariants === 'number') {
+      this.numTextVariants.set(settings.defaultNumTextVariants);
+    }
+    if (typeof settings.defaultMaxLength === 'number') {
+      this.maxLength.set(settings.defaultMaxLength);
+    }
+    if (typeof settings.defaultTemperature === 'number') {
+      this.temperature.set(settings.defaultTemperature);
+    }
+    if (settings.defaultImageModel) this.imageModel.set(settings.defaultImageModel);
+    if (settings.defaultAspectRatio) this.aspectRatio.set(settings.defaultAspectRatio);
+    if (settings.defaultImageOutputFormat) {
+      this.imageOutputFormat.set(settings.defaultImageOutputFormat);
+    }
+    if (typeof settings.defaultNumImageVariants === 'number') {
+      this.numImageVariants.set(settings.defaultNumImageVariants);
+    }
+    if (settings.defaultVideoModel) {
+      this.videoModel.set(settings.defaultVideoModel);
+      this.syncVideoModelDefaults();
+    }
+    if (typeof settings.defaultVideoDuration === 'number') {
+      this.videoDuration.set(String(this.normalizeVideoDuration(settings.defaultVideoDuration)));
+    }
+    if (typeof settings.defaultNumVideoVariants === 'number') {
+      this.numVideoVariants.set(settings.defaultNumVideoVariants);
+    }
+    if (settings.defaultMotionIntensity) this.motionIntensity.set(settings.defaultMotionIntensity);
+    if (settings.defaultCameraMovement) this.cameraMovement.set(settings.defaultCameraMovement);
+    if (settings.defaultFps) this.fps.set(settings.defaultFps);
+    if (typeof settings.defaultLoopVideo === 'boolean') {
+      this.loopVideo.set(settings.defaultLoopVideo);
+    }
+  }
+
+  async handleSaveProjectSettings(): Promise<void> {
+    const pid = this.projectId();
+    if (!pid || this.isSavingProjectSettings()) return;
+
+    this.isSavingProjectSettings.set(true);
+    this.projectSettingsMessage.set(null);
+
+    try {
+      await firstValueFrom(
+        this.projectsApi.updateProject(pid, {
+          settings: this.buildCurrentProjectSettings(),
+        }),
+      );
+      this.projectSettingsMessage.set('Project configuration saved.');
+    } catch {
+      this.projectSettingsMessage.set('Could not save project configuration.');
+    } finally {
+      this.isSavingProjectSettings.set(false);
+    }
+  }
+
+  private buildCurrentProjectSettings(): ProjectSettings {
+    return {
+      defaultPlatform: this.platform(),
+      defaultAiModel: this.aiModel() as ProjectSettings['defaultAiModel'],
+      defaultNumTextVariants: this.numTextVariants(),
+      defaultMaxLength: this.maxLength(),
+      defaultTemperature: this.temperature(),
+      defaultImageModel: this.customImageModel().trim() || this.imageModel(),
+      defaultAspectRatio: this.aspectRatio() as ProjectSettings['defaultAspectRatio'],
+      defaultImageOutputFormat: this.imageOutputFormat(),
+      defaultNumImageVariants: this.numImageVariants(),
+      defaultVideoModel: this.videoModel(),
+      defaultVideoDuration: this.normalizeVideoDuration(this.videoDuration()),
+      defaultNumVideoVariants: this.numVideoVariants(),
+      defaultMotionIntensity: this.motionIntensity() as ProjectSettings['defaultMotionIntensity'],
+      defaultCameraMovement: this.cameraMovement() as ProjectSettings['defaultCameraMovement'],
+      defaultFps: this.fps() as ProjectSettings['defaultFps'],
+      defaultLoopVideo: this.loopVideo(),
+    };
   }
 
   handlePlatformChange(p: Platform): void {
@@ -259,8 +447,29 @@ export class ContentGeneratorPage implements OnInit {
   }
 
   async handleGenerateImage(): Promise<void> {
+    const model = this.customImageModel().trim() || this.imageModel();
+    const capability = this.selectedImageModelCapability();
     const prompt = this.imagePrompt().trim();
-    if (!prompt) {
+    const seedImage = this.seedImage().trim() || undefined;
+    const maskImage = this.maskImage().trim() || undefined;
+    const guideImage = this.guideImage().trim() || undefined;
+
+    if (!this.customImageModel().trim() && capability) {
+      if (capability.requiredInputs.includes('seedImage') && !seedImage) {
+        this.setError(`Model ${capability.label} requires Seed image URL or UUID`);
+        return;
+      }
+      if (capability.requiredInputs.includes('maskImage') && !maskImage) {
+        this.setError(`Model ${capability.label} requires Mask image URL or UUID`);
+        return;
+      }
+      if (capability.requiredInputs.includes('guideImage') && !guideImage) {
+        this.setError(`Model ${capability.label} requires Guide image URL or UUID`);
+        return;
+      }
+    }
+
+    if (!prompt && model !== 'runware:105@1') {
       this.setError('Enter an image prompt');
       return;
     }
@@ -276,14 +485,15 @@ export class ContentGeneratorPage implements OnInit {
     this.setError(null);
 
     const dims = ASPECT_RATIO_DIMENSIONS[this.aspectRatio()] ?? ASPECT_RATIO_DIMENSIONS['1:1'];
-    const model = this.customImageModel().trim() || this.imageModel();
-
     try {
       const res = await firstValueFrom(
         this.contentApi.generateImage({
-          prompt,
+          prompt: prompt || '__BLANK__',
           negativePrompt: this.negativePrompt().trim() || undefined,
           model,
+          seedImage,
+          maskImage,
+          guideImage,
           width: dims.width,
           height: dims.height,
           steps: this.steps(),
@@ -345,26 +555,51 @@ export class ContentGeneratorPage implements OnInit {
     this.isGeneratingVideo.set(true);
     this.videoVariants.set([]);
     this.selectedVideoIndex.set(null);
+    this.videoGenerationStatus.set(null);
     this.setError(null);
 
     const idx = this.selectedImageIndex();
     const uuids = this.imageUUIDs();
     const imageUUID = idx !== null && uuids[idx] ? uuids[idx] : undefined;
-    const imageData = this.uploadedImage() ?? undefined;
+    const capability = this.selectedVideoModelCapability();
+    if (!capability) {
+      this.setError('Video model capabilities are still loading. Try again in a moment.');
+      this.isGeneratingVideo.set(false);
+      return;
+    }
+    const duration = this.normalizeVideoDuration(this.videoDuration());
+    const resolution = this.parseVideoResolution(this.videoResolutionOptions(), this.videoResolution());
+    const dimensions = capability.inferDimensionsFromImage
+      ? {}
+      : resolution
+        ? { width: resolution.width, height: resolution.height }
+        : {};
     const payload = {
       prompt: this.imagePrompt().trim() || 'Smooth motion',
-      duration: parseInt(this.videoDuration(), 10) || 5,
+      model: capability.id,
+      duration,
       numberResults: this.numVideoVariants(),
+      ...(capability.supportsNegativePrompt && this.videoNegativePrompt().trim()
+        ? { negativePrompt: this.videoNegativePrompt().trim() }
+        : {}),
+      ...(capability.supportsCfgScale ? { cfgScale: this.videoCfgScale() } : {}),
+      ...dimensions,
       ...(imageUUID ? { imageUUID } : { imageData: image }),
     };
 
     try {
-      const res = await firstValueFrom(
-        this.contentApi.generateVideo(payload),
+      const startRes = await firstValueFrom(
+        this.contentApi.startVideoGeneration(payload),
       );
-      this.videoVariants.set(res.urls);
+      this.userCredits.set(startRes.remainingCredits);
+      this.videoGenerationStatus.set(
+        `Queued ${startRes.taskUUIDs.length} video task(s)...`,
+      );
+
+      const urls = await this.waitForVideoResults(startRes.taskUUIDs);
+      this.videoVariants.set(urls);
       this.selectedVideoIndex.set(0);
-      this.userCredits.set(res.remainingCredits);
+      this.videoGenerationStatus.set('Video ready');
     } catch (err) {
       const msg =
         err instanceof HttpErrorResponse
@@ -373,9 +608,119 @@ export class ContentGeneratorPage implements OnInit {
             ? err.message
             : 'Video generation error';
       this.setError(msg);
+      this.videoGenerationStatus.set(null);
     } finally {
       this.isGeneratingVideo.set(false);
     }
+  }
+
+  private async waitForVideoResults(taskUUIDs: string[]): Promise<string[]> {
+    const startedAt = Date.now();
+
+    while (Date.now() - startedAt < VIDEO_STATUS_MAX_WAIT_MS) {
+      const statusRes = await firstValueFrom(
+        this.contentApi.getVideoGenerationStatus({ taskUUIDs }),
+      );
+
+      const readyCount = statusRes.items.filter(
+        (item) => item.status === 'success',
+      ).length;
+      const failedCount = statusRes.items.filter(
+        (item) => item.status === 'error',
+      ).length;
+      this.videoGenerationStatus.set(
+        `Generating video... ${readyCount}/${taskUUIDs.length} ready${
+          failedCount > 0 ? `, ${failedCount} failed` : ''
+        }`,
+      );
+
+      if (statusRes.done) {
+        if (statusRes.urls.length > 0) {
+          return statusRes.urls;
+        }
+        const firstError = statusRes.items.find(
+          (item) => item.status === 'error',
+        );
+        throw new Error(firstError?.error ?? 'Video generation failed');
+      }
+
+      await new Promise((resolve) =>
+        setTimeout(resolve, VIDEO_STATUS_POLL_INTERVAL_MS),
+      );
+    }
+
+    throw new Error('Video generation timed out. Please try again.');
+  }
+
+  handleImageModelChange(modelId: string): void {
+    this.imageModel.set(modelId);
+    this.customImageModel.set('');
+  }
+
+  handleVideoModelChange(modelId: string): void {
+    this.videoModel.set(modelId);
+    this.syncVideoModelDefaults();
+  }
+
+  private syncVideoModelDefaults(): void {
+    const capability = this.selectedVideoModelCapability();
+    if (!capability) {
+      return;
+    }
+
+    const allowedDurations = capability.durationOptions;
+    const currentDuration = Number.parseInt(this.videoDuration(), 10);
+    if (!allowedDurations.includes(currentDuration)) {
+      this.videoDuration.set(String(capability.defaults.duration ?? allowedDurations[0] ?? 5));
+    }
+
+    if (capability.inferDimensionsFromImage) {
+      this.videoResolution.set('');
+      return;
+    }
+
+    const selected = this.parseVideoResolution(capability.resolutions, this.videoResolution());
+    if (!selected) {
+      const fallback = capability.resolutions[0];
+      if (fallback) {
+        this.videoResolution.set(`${fallback.width}x${fallback.height}`);
+      }
+    }
+  }
+
+  private normalizeVideoDuration(value: string | number): number {
+    const parsed = typeof value === 'number' ? value : Number.parseInt(value, 10);
+    const capability = this.selectedVideoModelCapability();
+    if (!capability) {
+      return Number.isNaN(parsed) ? 5 : parsed;
+    }
+    if (Number.isNaN(parsed)) {
+      return capability.defaults.duration;
+    }
+    if (capability.durationOptions.includes(parsed)) {
+      return parsed;
+    }
+    return capability.defaults.duration;
+  }
+
+  private parseVideoResolution(
+    options: VideoResolution[],
+    rawValue: string,
+  ): VideoResolution | null {
+    if (!rawValue) {
+      return null;
+    }
+    const [wRaw, hRaw] = rawValue.split('x');
+    const width = Number.parseInt(wRaw ?? '', 10);
+    const height = Number.parseInt(hRaw ?? '', 10);
+    if (Number.isNaN(width) || Number.isNaN(height)) {
+      return null;
+    }
+    return (
+      options.find(
+        (option) => option.width === width && option.height === height,
+      ) ?? null
+    );
   }
 
   togglePlatform(p: Platform): void {
