@@ -127,8 +127,12 @@ export class RunwareService {
     imageUUID: string;
     prompt: string;
     duration?: number;
+    width?: number;
+    height?: number;
   }): Promise<string> {
     const taskUUID = crypto.randomUUID();
+    const width = params.width ?? 1080;
+    const height = params.height ?? 1080;
     await this.request([
       {
         taskType: 'videoInference',
@@ -139,6 +143,8 @@ export class RunwareService {
         deliveryMethod: 'async',
         frameImages: [{ inputImage: params.imageUUID, frame: 'first' }],
         numberResults: 1,
+        width,
+        height,
       },
     ]);
     return taskUUID;

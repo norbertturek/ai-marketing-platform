@@ -200,9 +200,12 @@ export class ContentController {
           break;
         }
         if (result.status === 'error') {
-          throw new InternalServerErrorException(
-            result.error ?? 'Video generation failed',
-          );
+          const msg = result.error ?? 'Video generation failed';
+          this.logger.error('Video generation failed', {
+            taskUUID,
+            error: msg,
+          });
+          throw new InternalServerErrorException(msg);
         }
         await new Promise((r) => setTimeout(r, VIDEO_POLL_INTERVAL_MS));
       }
