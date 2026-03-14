@@ -83,23 +83,21 @@ export class RunwareService {
     const model = params.model ?? DEFAULT_IMAGE_MODEL_ID;
     const capability = getImageModelCapability(model);
     const runwareTasks = taskUUIDs.map((taskUUID) =>
-      this.buildImageInferenceTask(
-        {
-          taskUUID,
-          prompt: params.prompt,
-          negativePrompt: params.negativePrompt,
-          model,
-          capabilityId: capability?.id,
-          width: params.width ?? 1024,
-          height: params.height ?? 1024,
-          steps: params.steps ?? 30,
-          cfgScale: params.cfgScale ?? 7.5,
-          outputFormat: format,
-          seedImage: params.seedImage,
-          maskImage: params.maskImage,
-          guideImage: params.guideImage,
-        },
-      ),
+      this.buildImageInferenceTask({
+        taskUUID,
+        prompt: params.prompt,
+        negativePrompt: params.negativePrompt,
+        model,
+        capabilityId: capability?.id,
+        width: params.width ?? 1024,
+        height: params.height ?? 1024,
+        steps: params.steps ?? 30,
+        cfgScale: params.cfgScale ?? 7.5,
+        outputFormat: format,
+        seedImage: params.seedImage,
+        maskImage: params.maskImage,
+        guideImage: params.guideImage,
+      }),
     );
     const res = await this.request(runwareTasks);
     const urls: string[] = [];
@@ -255,9 +253,7 @@ export class RunwareService {
         height: params.height,
         steps: params.steps,
         CFGScale: params.cfgScale,
-        ipAdapters: [
-          { guideImage: params.guideImage, model: 'runware:105@1' },
-        ],
+        ipAdapters: [{ guideImage: params.guideImage, model: 'runware:105@1' }],
         numberResults: 1,
         outputType: 'URL',
         outputFormat: params.outputFormat,

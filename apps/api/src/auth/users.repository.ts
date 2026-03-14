@@ -66,14 +66,8 @@ export class UsersRepository {
           storageVideoCount: true,
         },
       });
-      const newImageCount = Math.max(
-        0,
-        user.storageImageCount + imageDelta,
-      );
-      const newVideoCount = Math.max(
-        0,
-        user.storageVideoCount + videoDelta,
-      );
+      const newImageCount = Math.max(0, user.storageImageCount + imageDelta);
+      const newVideoCount = Math.max(0, user.storageVideoCount + videoDelta);
       await tx.user.update({
         where: { id: userId },
         data: {

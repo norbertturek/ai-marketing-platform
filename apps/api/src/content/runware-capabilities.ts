@@ -289,7 +289,9 @@ export function getVideoModelCapability(
   return RUNWARE_VIDEO_MODEL_CAPABILITIES.find((item) => item.id === modelId);
 }
 
-export function listDurations(capability: RunwareVideoModelCapability): number[] {
+export function listDurations(
+  capability: RunwareVideoModelCapability,
+): number[] {
   if (capability.duration.mode === 'enum') {
     return capability.duration.values;
   }
@@ -327,4 +329,3 @@ export function isVideoResolutionAllowed(
     (resolution) => resolution.width === width && resolution.height === height,
   );
 }
-

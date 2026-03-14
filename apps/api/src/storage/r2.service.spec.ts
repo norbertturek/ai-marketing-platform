@@ -4,9 +4,10 @@ import { R2Service } from './r2.service';
 const mockSend = jest.fn();
 
 jest.mock('@aws-sdk/client-s3', () => {
-  const actual = jest.requireActual<typeof import('@aws-sdk/client-s3')>(
-    '@aws-sdk/client-s3',
-  );
+  const actual =
+    jest.requireActual<typeof import('@aws-sdk/client-s3')>(
+      '@aws-sdk/client-s3',
+    );
   return {
     ...actual,
     S3Client: jest.fn().mockImplementation(() => ({ send: mockSend })),
@@ -39,7 +40,9 @@ describe('R2Service', () => {
   describe('mediaKey', () => {
     it('builds key with project, post, type, index and extension', () => {
       const key = service.mediaKey('proj-1', 'post-1', 'image', 0, 'webp');
-      expect(key).toMatch(/^projects\/proj-1\/posts\/post-1\/image\/\d+-0\.webp$/);
+      expect(key).toMatch(
+        /^projects\/proj-1\/posts\/post-1\/image\/\d+-0\.webp$/,
+      );
     });
 
     it('strips leading dot from extension', () => {
@@ -60,9 +63,9 @@ describe('R2Service', () => {
 
   describe('extensionFromUrl', () => {
     it('extracts extension from path', () => {
-      expect(
-        service.extensionFromUrl('https://example.com/photo.webp'),
-      ).toBe('webp');
+      expect(service.extensionFromUrl('https://example.com/photo.webp')).toBe(
+        'webp',
+      );
       expect(
         service.extensionFromUrl('https://cdn.example.com/video.mp4?token=abc'),
       ).toBe('mp4');
@@ -101,7 +104,11 @@ describe('R2Service', () => {
         }),
       );
 
-      const result = await service.upload('test/key', Buffer.from('x'), 'image/webp');
+      const result = await service.upload(
+        'test/key',
+        Buffer.from('x'),
+        'image/webp',
+      );
 
       expect(result).toBeNull();
     });
@@ -109,7 +116,11 @@ describe('R2Service', () => {
     it('returns null when upload fails with generic error', async () => {
       mockSend.mockRejectedValue(new Error('Network error'));
 
-      const result = await service.upload('test/key', Buffer.from('x'), 'image/webp');
+      const result = await service.upload(
+        'test/key',
+        Buffer.from('x'),
+        'image/webp',
+      );
 
       expect(result).toBeNull();
     });
@@ -131,7 +142,9 @@ describe('R2Service', () => {
 
       expect(fetchSpy).toHaveBeenCalledWith(
         'https://runware.example/image.webp',
-        expect.objectContaining({ headers: { 'User-Agent': 'AiMarketingPlatform/1.0' } }),
+        expect.objectContaining({
+          headers: { 'User-Agent': 'AiMarketingPlatform/1.0' },
+        }),
       );
       expect(result).toBe(
         'https://pub-test.r2.dev/projects/p/posts/q/image/0.webp',

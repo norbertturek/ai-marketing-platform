@@ -383,14 +383,10 @@ export class ContentController {
     const hasGuideImage = Boolean(dto.guideImage?.trim());
 
     if (capability.requiredInputs.includes('seedImage') && !hasSeedImage) {
-      throw new BadRequestException(
-        `${capability.label} requires 'seedImage'`,
-      );
+      throw new BadRequestException(`${capability.label} requires 'seedImage'`);
     }
     if (capability.requiredInputs.includes('maskImage') && !hasMaskImage) {
-      throw new BadRequestException(
-        `${capability.label} requires 'maskImage'`,
-      );
+      throw new BadRequestException(`${capability.label} requires 'maskImage'`);
     }
     if (capability.requiredInputs.includes('guideImage') && !hasGuideImage) {
       throw new BadRequestException(

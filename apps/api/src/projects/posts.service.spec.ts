@@ -383,7 +383,10 @@ describe('PostsService', () => {
             update: jest.fn(),
           },
         },
-        { provide: ProjectsRepository, useValue: { findByIdForUser: jest.fn() } },
+        {
+          provide: ProjectsRepository,
+          useValue: { findByIdForUser: jest.fn() },
+        },
         {
           provide: R2Service,
           useValue: {
@@ -432,7 +435,10 @@ describe('PostsService', () => {
             update: jest.fn(),
           },
         },
-        { provide: ProjectsRepository, useValue: { findByIdForUser: jest.fn() } },
+        {
+          provide: ProjectsRepository,
+          useValue: { findByIdForUser: jest.fn() },
+        },
         {
           provide: R2Service,
           useValue: {

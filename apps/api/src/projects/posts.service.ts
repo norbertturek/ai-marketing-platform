@@ -223,7 +223,11 @@ export class PostsService {
       status: data.status,
     });
     if (imageDelta !== 0 || videoDelta !== 0) {
-      await this.usersRepository.addStorageMedia(userId, imageDelta, videoDelta);
+      await this.usersRepository.addStorageMedia(
+        userId,
+        imageDelta,
+        videoDelta,
+      );
     }
     return this.toResponse(updated);
   }

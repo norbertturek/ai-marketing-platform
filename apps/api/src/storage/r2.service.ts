@@ -50,9 +50,7 @@ export class R2Service implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     if (!this.client) return;
     try {
-      await this.client.send(
-        new HeadBucketCommand({ Bucket: this.bucket }),
-      );
+      await this.client.send(new HeadBucketCommand({ Bucket: this.bucket }));
       this.logger.log(`R2 bucket "${this.bucket}" is reachable`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
