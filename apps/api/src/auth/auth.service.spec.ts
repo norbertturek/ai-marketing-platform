@@ -47,6 +47,8 @@ describe('AuthService', () => {
       passwordHash: 'hash',
       refreshTokenHash: null,
       credits: 100,
+      storageImageCount: 0,
+      storageVideoCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     } satisfies User;
@@ -104,6 +106,8 @@ describe('AuthService', () => {
       passwordHash,
       refreshTokenHash,
       credits: 100,
+      storageImageCount: 0,
+      storageVideoCount: 0,
       createdAt: new Date(),
       updatedAt: new Date(),
     } satisfies User;
