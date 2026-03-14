@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../auth/auth.module';
 import { PrismaModule } from '../prisma/prisma.module';
 import { StorageModule } from '../storage/storage.module';
 import { PostsController } from './posts.controller';
@@ -9,7 +10,7 @@ import { ProjectsRepository } from './projects.repository';
 import { ProjectsService } from './projects.service';
 
 @Module({
-  imports: [PrismaModule, StorageModule],
+  imports: [AuthModule, PrismaModule, StorageModule],
   controllers: [ProjectsController, PostsController],
   providers: [
     ProjectsService,

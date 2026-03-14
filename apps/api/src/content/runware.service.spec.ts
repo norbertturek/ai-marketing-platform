@@ -111,4 +111,39 @@ describe('RunwareService', () => {
       'Invalid model',
     );
   });
+
+  it('builds FLUX Fill payload with seed and mask images', async () => {
+    await service.generateImages({
+      prompt: 'replace the background',
+      model: 'runware:102@1',
+      seedImage: 'seed-uuid',
+      maskImage: 'mask-uuid',
+      numVariants: 1,
+    });
+
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string);
+    expect(body[0]).toMatchObject({
+      taskType: 'imageInference',
+      model: 'runware:102@1',
+      seedImage: 'seed-uuid',
+      maskImage: 'mask-uuid',
+    });
+  });
+
+  it('builds FLUX Redux payload with ipAdapters', async () => {
+    await service.generateImages({
+      prompt: '',
+      model: 'runware:105@1',
+      guideImage: 'guide-uuid',
+      numVariants: 1,
+    });
+
+    const body = JSON.parse(fetchSpy.mock.calls[0][1].body as string);
+    expect(body[0]).toMatchObject({
+      taskType: 'imageInference',
+      model: 'runware:101@1',
+      positivePrompt: '__BLANK__',
+      ipAdapters: [{ guideImage: 'guide-uuid', model: 'runware:105@1' }],
+    });
+  });
 });

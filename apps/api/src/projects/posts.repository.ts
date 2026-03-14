@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Post } from '@prisma/client';
+import type { TransactionClient } from '../auth/users.repository';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -45,8 +46,10 @@ export class PostsRepository {
       platform?: string;
       status?: string;
     },
+    tx?: TransactionClient,
   ): Promise<Post> {
-    return this.prisma.post.update({
+    const client = tx ?? this.prisma;
+    return client.post.update({
       where: { id: postId },
       data: { ...data, updatedAt: new Date() },
     });

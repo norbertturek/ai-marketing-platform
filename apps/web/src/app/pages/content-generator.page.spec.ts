@@ -15,6 +15,7 @@ describe('ContentGeneratorPage', () => {
   const projectsApiMock = {
     getProject: vi.fn(),
     getProjects: vi.fn(),
+    updateProject: vi.fn(),
   };
   const creditsApiMock = {
     getCredits: vi.fn(),
@@ -24,21 +25,38 @@ describe('ContentGeneratorPage', () => {
     updatePost: vi.fn(),
   };
   const contentApiMock = {
+    getCapabilities: vi.fn(),
     generateText: vi.fn(),
     generateImage: vi.fn(),
     generateVideo: vi.fn(),
+    startVideoGeneration: vi.fn(),
+    getVideoGenerationStatus: vi.fn(),
   };
 
   beforeEach(async () => {
     projectsApiMock.getProject.mockReset();
     projectsApiMock.getProjects.mockReset();
+    projectsApiMock.updateProject.mockReset();
     projectsApiMock.getProjects.mockReturnValue(of([]));
+    projectsApiMock.updateProject.mockReturnValue(
+      of({
+        id: 'proj_1',
+        name: 'Test Project',
+        description: 'Desc',
+        context: null,
+        settings: null,
+        postsCount: 0,
+        createdAt: '2026-03-02T00:00:00.000Z',
+        updatedAt: '2026-03-02T00:00:00.000Z',
+      }),
+    );
     projectsApiMock.getProject.mockReturnValue(
       of({
         id: 'proj_1',
         name: 'Test Project',
         description: 'Desc',
         context: null,
+        settings: null,
         postsCount: 0,
         createdAt: '2026-03-02T00:00:00.000Z',
         updatedAt: '2026-03-02T00:00:00.000Z',
@@ -50,9 +68,41 @@ describe('ContentGeneratorPage', () => {
 
     postsApiMock.createPost.mockReset();
     postsApiMock.updatePost.mockReset();
+    contentApiMock.getCapabilities.mockReset();
     contentApiMock.generateText.mockReset();
     contentApiMock.generateImage.mockReset();
     contentApiMock.generateVideo.mockReset();
+    contentApiMock.startVideoGeneration.mockReset();
+    contentApiMock.getVideoGenerationStatus.mockReset();
+    contentApiMock.getCapabilities.mockReturnValue(
+      of({
+        imageModels: [
+          {
+            id: 'runware:101@1',
+            label: 'FLUX.1 [dev]',
+            description: 'General text-to-image FLUX model.',
+            requiredInputs: [],
+            supportsNegativePrompt: true,
+          },
+        ],
+        videoModels: [
+          {
+            id: 'klingai:1@1',
+            label: 'KlingAI 1.0 Standard',
+            description: 'Budget model',
+            duration: { mode: 'enum', values: [5, 10] },
+            durationOptions: [5, 10],
+            resolutions: [{ width: 1280, height: 720, label: '1280x720 (16:9)' }],
+            inferDimensionsFromImage: false,
+            supportsNegativePrompt: true,
+            supportsCfgScale: true,
+            inputShape: 'frameImages',
+            defaults: { duration: 5, width: 1280, height: 720, cfgScale: 0.5 },
+          },
+        ],
+        defaults: { imageModel: 'runware:101@1', videoModel: 'klingai:1@1' },
+      }),
+    );
 
     await TestBed.configureTestingModule({
       imports: [ContentGeneratorPage],
@@ -82,7 +132,7 @@ describe('ContentGeneratorPage', () => {
     const el = fixture.nativeElement as HTMLElement;
     expect(el.textContent).toMatch(/1\s+credits/);
     expect(el.textContent).toMatch(/5\s+credits/);
-    expect(el.textContent).toMatch(/50\s+credits/);
+    expect(el.textContent).toMatch(/10\s+credits/);
   });
 
   it('fetches credits on init', () => {
@@ -106,6 +156,7 @@ describe('ContentGeneratorPage', () => {
           name: 'Test',
           description: '',
           context: null,
+          settings: null,
           postsCount: 0,
           createdAt: '',
           updatedAt: '',
@@ -124,7 +175,7 @@ describe('ContentGeneratorPage', () => {
     it('canSave is true when text and project selected for save', () => {
       projectsApiMock.getProjects.mockReturnValue(
         of([
-          { id: 'proj_1', name: 'P1', description: '', context: null, postsCount: 0, createdAt: '', updatedAt: '' },
+          { id: 'proj_1', name: 'P1', description: '', context: null, settings: null, postsCount: 0, createdAt: '', updatedAt: '' },
         ]),
       );
       const fixture = TestBed.createComponent(ContentGeneratorPage);
@@ -132,7 +183,7 @@ describe('ContentGeneratorPage', () => {
       fixture.componentInstance.textVariants.set(['Hello']);
       fixture.componentInstance.selectedTextIndex.set(0);
       fixture.componentInstance.projects.set([
-        { id: 'proj_1', name: 'P1', description: '', context: null, postsCount: 0, createdAt: '', updatedAt: '' },
+        { id: 'proj_1', name: 'P1', description: '', context: null, settings: null, postsCount: 0, createdAt: '', updatedAt: '' },
       ]);
       fixture.componentInstance.selectProjectForSave('proj_1');
       fixture.detectChanges();
@@ -159,7 +210,7 @@ describe('ContentGeneratorPage', () => {
       fixture.componentInstance.textVariants.set(['Hi']);
       fixture.componentInstance.selectedTextIndex.set(0);
       fixture.componentInstance.projects.set([
-        { id: 'proj_1', name: 'P1', description: '', context: null, postsCount: 0, createdAt: '', updatedAt: '' },
+        { id: 'proj_1', name: 'P1', description: '', context: null, settings: null, postsCount: 0, createdAt: '', updatedAt: '' },
       ]);
       fixture.componentInstance.selectProjectForSave('proj_1');
       fixture.detectChanges();
@@ -190,9 +241,22 @@ describe('ContentGeneratorPage', () => {
   });
 
   describe('video generation', () => {
-    it('handleGenerateVideo calls generateVideo with imageUUID when available', async () => {
-      contentApiMock.generateVideo.mockReturnValue(
-        of({ urls: ['https://example.com/video.mp4'], remainingCredits: 50 }),
+    it('handleGenerateVideo starts and polls video generation with imageUUID when available', async () => {
+      contentApiMock.startVideoGeneration.mockReturnValue(
+        of({ taskUUIDs: ['task-1'], remainingCredits: 90 }),
+      );
+      contentApiMock.getVideoGenerationStatus.mockReturnValue(
+        of({
+          done: true,
+          urls: ['https://example.com/video.mp4'],
+          items: [
+            {
+              taskUUID: 'task-1',
+              status: 'success',
+              videoURL: 'https://example.com/video.mp4',
+            },
+          ],
+        }),
       );
       const fixture = TestBed.createComponent(ContentGeneratorPage);
       fixture.detectChanges();
@@ -207,7 +271,7 @@ describe('ContentGeneratorPage', () => {
 
       await fixture.componentInstance.handleGenerateVideo();
 
-      expect(contentApiMock.generateVideo).toHaveBeenCalledWith(
+      expect(contentApiMock.startVideoGeneration).toHaveBeenCalledWith(
         expect.objectContaining({
           imageUUID: 'uuid-123',
           prompt: 'Smooth motion',
@@ -215,8 +279,34 @@ describe('ContentGeneratorPage', () => {
           numberResults: 1,
         }),
       );
+      expect(contentApiMock.getVideoGenerationStatus).toHaveBeenCalledWith({
+        taskUUIDs: ['task-1'],
+      });
       expect(fixture.componentInstance.videoVariants()).toEqual(['https://example.com/video.mp4']);
-      expect(fixture.componentInstance.userCredits()).toBe(50);
+      expect(fixture.componentInstance.userCredits()).toBe(90);
     });
+  });
+
+  it('saves current generator options as project defaults', async () => {
+    const fixture = TestBed.createComponent(ContentGeneratorPage);
+    fixture.detectChanges();
+    fixture.componentInstance.projectId.set('proj_1');
+    fixture.componentInstance.aiModel.set('gpt-4o');
+    fixture.componentInstance.videoDuration.set('10');
+
+    await fixture.componentInstance.handleSaveProjectSettings();
+
+    expect(projectsApiMock.updateProject).toHaveBeenCalledWith(
+      'proj_1',
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          defaultAiModel: 'gpt-4o',
+          defaultVideoDuration: 10,
+        }),
+      }),
+    );
+    expect(fixture.componentInstance.projectSettingsMessage()).toBe(
+      'Project configuration saved.',
+    );
   });
 });

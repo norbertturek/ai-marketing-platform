@@ -15,7 +15,7 @@ export class GenerateVideoDto {
 
   @ValidateIf((o: GenerateVideoDto) => !o.imageUUID)
   @IsString()
-  imageData?: string; // base64 or data URL — uploadImage will be called
+  imageData?: string; // base64, data URL, or public image URL
 
   @IsString()
   prompt!: string;
@@ -24,8 +24,36 @@ export class GenerateVideoDto {
   @Type(() => Number)
   @IsInt()
   @Min(3)
-  @Max(10)
+  @Max(15)
   duration?: number = 5;
+
+  @IsOptional()
+  @IsString()
+  model?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(128)
+  @Max(2048)
+  width?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(128)
+  @Max(2048)
+  height?: number;
+
+  @IsOptional()
+  @IsString()
+  negativePrompt?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @Min(0)
+  @Max(1)
+  cfgScale?: number;
 
   @IsOptional()
   @Type(() => Number)

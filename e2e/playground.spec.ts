@@ -23,7 +23,7 @@ test.describe('Playground (content generator)', () => {
   test('shows cost badges', async ({ page }) => {
     await expect(page.getByText(/1\s+credits/)).toBeVisible();
     await expect(page.getByText(/5\s+credits/)).toBeVisible();
-    await expect(page.getByText(/50\s+credits/)).toBeVisible();
+    await expect(page.getByText(/10\s+credits/)).toBeVisible();
   });
 
   test('generate text button is enabled with prompt', async ({ page }) => {

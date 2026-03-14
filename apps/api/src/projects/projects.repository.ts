@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Project } from '@prisma/client';
+import { Prisma, Project } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
 export type ProjectWithCount = Project & { _count: { posts: number } };
@@ -18,7 +18,12 @@ export class ProjectsRepository {
 
   create(
     userId: string,
-    data: { name: string; description?: string; context?: string },
+    data: {
+      name: string;
+      description?: string;
+      context?: string;
+      settings?: Prisma.InputJsonValue;
+    },
   ): Promise<Project> {
     return this.prisma.project.create({
       data: {
@@ -26,6 +31,27 @@ export class ProjectsRepository {
         name: data.name,
         description: data.description ?? '',
         context: data.context,
+        settings: data.settings,
+      },
+    });
+  }
+
+  update(
+    id: string,
+    data: {
+      name?: string;
+      description?: string;
+      context?: string;
+      settings?: Prisma.InputJsonValue;
+    },
+  ): Promise<Project> {
+    return this.prisma.project.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description,
+        context: data.context,
+        settings: data.settings,
       },
     });
   }

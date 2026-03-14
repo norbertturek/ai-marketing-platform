@@ -61,13 +61,46 @@ test.describe('Video generation', () => {
       });
     });
 
-    await page.route('**/api/content/generate-video', async (route) => {
+    await page.route('**/api/content/generate-video/start', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
+          taskUUIDs: ['task-1'],
+          remainingCredits: 85,
+        }),
+      });
+    });
+
+    let statusCalls = 0;
+    await page.route('**/api/content/generate-video/status', async (route) => {
+      statusCalls += 1;
+      if (statusCalls === 1) {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            done: false,
+            urls: [],
+            items: [{ taskUUID: 'task-1', status: 'processing' }],
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          done: true,
           urls: [TEST_VIDEO_URL],
-          remainingCredits: 45,
+          items: [
+            {
+              taskUUID: 'task-1',
+              status: 'success',
+              videoURL: TEST_VIDEO_URL,
+            },
+          ],
         }),
       });
     });
@@ -90,8 +123,9 @@ test.describe('Video generation', () => {
     ).toBeVisible({ timeout: 8000 });
 
     await page.getByRole('button', { name: /Generate video/ }).click();
+    await expect(page.getByText('Video ready')).toBeVisible({ timeout: 25000 });
     const videoEl = page.locator('video').first();
-    await expect(videoEl).toBeVisible({ timeout: 15000 });
+    await expect(videoEl).toBeVisible({ timeout: 10000 });
     await expect(videoEl).toHaveAttribute('src', TEST_VIDEO_URL);
   });
 });

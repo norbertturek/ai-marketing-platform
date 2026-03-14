@@ -8,19 +8,20 @@ import {
 } from 'class-validator';
 import { ProjectSettingsDto } from './project-settings.dto';
 
-export class CreateProjectDto {
+export class UpdateProjectDto {
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(255)
-  name!: string;
+  name?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   @MaxLength(5000)
   description?: string;
 
-  @IsString()
   @IsOptional()
+  @IsString()
   @MaxLength(10000)
   context?: string;
 

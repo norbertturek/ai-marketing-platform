@@ -37,6 +37,7 @@ describe('ProjectsPage', () => {
           name: 'Campaign',
           description: 'Description',
           context: null,
+          settings: null,
           postsCount: 2,
           createdAt: '2026-03-02T00:00:00.000Z',
           updatedAt: '2026-03-02T00:00:00.000Z',
@@ -71,6 +72,7 @@ describe('ProjectsPage', () => {
         name: 'New Project',
         description: 'Desc',
         context: null,
+        settings: null,
         postsCount: 0,
         createdAt: '2026-03-02T00:00:00.000Z',
         updatedAt: '2026-03-02T00:00:00.000Z',
@@ -86,6 +88,22 @@ describe('ProjectsPage', () => {
       name: 'New Project',
       description: 'Desc',
       context: '',
+      defaultPlatform: 'instagram',
+      defaultAiModel: 'gpt-4o-mini',
+      defaultNumTextVariants: '1',
+      defaultMaxLength: '150',
+      defaultTemperature: '0.7',
+      defaultImageModel: 'runware:101@1',
+      defaultAspectRatio: '1:1',
+      defaultImageOutputFormat: 'WEBP',
+      defaultNumImageVariants: '1',
+      defaultVideoModel: 'klingai:1@1',
+      defaultVideoDuration: '5',
+      defaultNumVideoVariants: '1',
+      defaultMotionIntensity: 'medium',
+      defaultCameraMovement: 'static',
+      defaultFps: '30',
+      defaultLoopVideo: false,
     });
     component.createProject();
 
@@ -93,6 +111,10 @@ describe('ProjectsPage', () => {
       name: 'New Project',
       description: 'Desc',
       context: undefined,
+      settings: expect.objectContaining({
+        defaultPlatform: 'instagram',
+        defaultAiModel: 'gpt-4o-mini',
+      }),
     });
     expect(component.projects()[0]?.id).toBe('proj_new');
     expect(component.showCreateForm()).toBe(false);

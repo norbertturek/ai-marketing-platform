@@ -9,6 +9,7 @@ const makeProject = (overrides: Partial<Project> = {}): Project => ({
   name: 'Launch campaign',
   description: 'Desc',
   context: null,
+  settings: null,
   userId: 'user_1',
   createdAt: new Date('2026-03-02T10:00:00.000Z'),
   updatedAt: new Date('2026-03-02T10:00:00.000Z'),
@@ -29,6 +30,7 @@ describe('ProjectsService', () => {
             findAllByUserId: jest.fn(),
             create: jest.fn(),
             findByIdForUser: jest.fn(),
+            update: jest.fn(),
           },
         },
       ],
@@ -80,6 +82,42 @@ describe('ProjectsService', () => {
         },
       ],
     ]);
+  });
+
+  it('updates project settings for owner', async () => {
+    repository.findByIdForUser.mockResolvedValue({
+      ...makeProject(),
+      _count: { posts: 1 },
+    });
+    repository.update.mockResolvedValue(
+      makeProject({
+        settings: {
+          defaultPlatform: 'linkedin',
+          defaultVideoDuration: 5,
+        },
+      }),
+    );
+
+    const result = await service.update('proj_1', 'user_1', {
+      settings: {
+        defaultPlatform: 'linkedin',
+        defaultVideoDuration: 5,
+      },
+    });
+
+    expect(result.settings).toEqual({
+      defaultPlatform: 'linkedin',
+      defaultVideoDuration: 5,
+    });
+    expect(repository.update).toHaveBeenCalledWith(
+      'proj_1',
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          defaultPlatform: 'linkedin',
+          defaultVideoDuration: 5,
+        }),
+      }),
+    );
   });
 
   it('returns single project for owner', async () => {

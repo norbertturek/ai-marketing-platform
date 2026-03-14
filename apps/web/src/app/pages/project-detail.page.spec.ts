@@ -29,6 +29,7 @@ describe('ProjectDetailPage', () => {
         name: 'Test Project',
         description: '',
         context: null,
+        settings: null,
         postsCount: 0,
         createdAt: '2026-03-02T00:00:00.000Z',
         updatedAt: '2026-03-02T00:00:00.000Z',

@@ -14,15 +14,17 @@ datasource db {
 }
 
 model User {
-  id               String        @id @default(cuid())
-  email            String        @unique
-  passwordHash     String
-  refreshTokenHash String?
-  credits          Int           @default(100)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  projects         Project[]
-  creditUsages     CreditUsage[]
+  id                 String        @id @default(cuid())
+  email              String        @unique
+  passwordHash       String
+  refreshTokenHash   String?
+  credits            Int           @default(500)
+  storageImageCount  Int           @default(0) /// Max 20 per user
+  storageVideoCount  Int           @default(0) /// Max 20 per user
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  projects           Project[]
+  creditUsages       CreditUsage[]
 }
 
 model CreditUsage {
@@ -43,6 +45,8 @@ model Project {
   description String   @default("")
   /// Brand voice, tone, and guidelines for AI content generation
   context     String?
+  /// Optional per-project defaults for content generation (platform, models, media options)
+  settings    Json?
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   posts       Post[]

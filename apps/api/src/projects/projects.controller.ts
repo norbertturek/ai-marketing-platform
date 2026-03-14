@@ -1,8 +1,17 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
 import type { AuthenticatedUser } from '../auth/auth.types';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CreateProjectDto } from './dto/create-project.dto';
+import { UpdateProjectDto } from './dto/update-project.dto';
 import { ProjectsService } from './projects.service';
 import type { ProjectResponse } from './projects.types';
 
@@ -30,5 +39,14 @@ export class ProjectsController {
     @CurrentUser() user: AuthenticatedUser,
   ): Promise<ProjectResponse> {
     return this.projectsService.create(user.userId, dto);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateProjectDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ): Promise<ProjectResponse> {
+    return this.projectsService.update(id, user.userId, dto);
   }
 }

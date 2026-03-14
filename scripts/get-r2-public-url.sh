@@ -2,7 +2,7 @@
 # Get R2 public URL and optionally update .env
 # Prerequisite: wrangler login (or set CLOUDFLARE_API_TOKEN)
 set -e
-BUCKET="${R2_BUCKET_NAME:-ai-marketing-platform}"
+BUCKET="${R2_BUCKET_NAME:-ai-marketing-content-platform}"
 ENV_FILE="apps/api/.env"
 
 echo "Getting public URL for bucket: $BUCKET"

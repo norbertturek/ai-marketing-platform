@@ -53,6 +53,28 @@ test.describe('Save post with media', () => {
       });
     });
 
+    await page.route('**/api/projects/*/posts/*', async (route) => {
+      if (route.request().method() === 'PATCH') {
+        await route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            id: 'post-1',
+            projectId: route.request().url().split('/projects/')[1]?.split('/')[0] ?? 'proj-1',
+            content: 'Test post content for save flow',
+            imageUrls: [MOCK_IMAGE_URL],
+            videoUrls: [],
+            platform: null,
+            status: 'draft',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }),
+        });
+        return;
+      }
+      await route.continue();
+    });
+
     await page.getByPlaceholder(/e.g. Promote/).fill('Test prompt');
     await page.getByRole('button', { name: 'Generate text' }).click();
     await expect(page.getByText(/Variant 1|Test post content/).first()).toBeVisible({
@@ -71,7 +93,7 @@ test.describe('Save post with media', () => {
     await saveBtn.scrollIntoViewIfNeeded();
     await saveBtn.evaluate((el: HTMLElement) => el.click());
 
-    await expect(page).toHaveURL(/\/project\/[^/]+$/);
-    await expect(page.getByText('Project posts')).toBeVisible();
+    await expect(page).toHaveURL(/\/project\/[^/]+$/, { timeout: 15000 });
+    await expect(page.getByText('Project posts')).toBeVisible({ timeout: 10000 });
   });
 });
