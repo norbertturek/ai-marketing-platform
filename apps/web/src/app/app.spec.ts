@@ -54,7 +54,7 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.textContent).toContain('AI Marketing Platform');
+    expect(el.textContent).toContain('Social Media Creator');
   });
 
   describe('navbar when not authenticated', () => {
