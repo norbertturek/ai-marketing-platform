@@ -159,6 +159,8 @@ export class RunwareService {
         : {
             frameImages: [{ inputImage: params.inputImage, frame: 'first' }],
           };
+    const width = params.width ?? 1080;
+    const height = params.height ?? 1080;
 
     await this.request([
       {
@@ -178,6 +180,8 @@ export class RunwareService {
           : {}),
         ...frameBlock,
         numberResults: 1,
+        width,
+        height,
       },
     ]);
     return taskUUID;
