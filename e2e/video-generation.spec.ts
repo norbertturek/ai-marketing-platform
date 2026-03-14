@@ -123,8 +123,9 @@ test.describe('Video generation', () => {
     ).toBeVisible({ timeout: 8000 });
 
     await page.getByRole('button', { name: /Generate video/ }).click();
+    await expect(page.getByText('Video ready')).toBeVisible({ timeout: 25000 });
     const videoEl = page.locator('video').first();
-    await expect(videoEl).toBeVisible({ timeout: 15000 });
+    await expect(videoEl).toBeVisible({ timeout: 10000 });
     await expect(videoEl).toHaveAttribute('src', TEST_VIDEO_URL);
   });
 });

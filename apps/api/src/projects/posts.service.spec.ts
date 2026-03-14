@@ -4,6 +4,7 @@ import type { ProjectWithCount } from './projects.repository';
 import { ProjectsRepository } from './projects.repository';
 import { PostsRepository } from './posts.repository';
 import { PostsService } from './posts.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { R2Service } from '../storage/r2.service';
 import { UsersRepository } from '../auth/users.repository';
 
@@ -41,6 +42,14 @@ describe('PostsService', () => {
       providers: [
         PostsService,
         {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) =>
+              fn({}),
+            ),
+          },
+        },
+        {
           provide: PostsRepository,
           useValue: {
             findAllByProjectId: jest.fn(),
@@ -66,6 +75,10 @@ describe('PostsService', () => {
           provide: UsersRepository,
           useValue: {
             getStorageCounts: jest.fn().mockResolvedValue({
+              storageImageCount: 0,
+              storageVideoCount: 0,
+            }),
+            getStorageCountsForUpdate: jest.fn().mockResolvedValue({
               storageImageCount: 0,
               storageVideoCount: 0,
             }),
@@ -145,13 +158,17 @@ describe('PostsService', () => {
     });
 
     expect(postsRepo.create).toHaveBeenCalledWith('proj_1');
-    expect(postsRepo.update).toHaveBeenCalledWith('post_1', {
-      content: 'Hello world',
-      imageUrls: undefined,
-      videoUrls: undefined,
-      platform: 'instagram',
-      status: 'draft',
-    });
+    expect(postsRepo.update).toHaveBeenCalledWith(
+      'post_1',
+      {
+        content: 'Hello world',
+        imageUrls: undefined,
+        videoUrls: undefined,
+        platform: 'instagram',
+        status: 'draft',
+      },
+      expect.anything(),
+    );
     expect(result.content).toBe('Hello world');
   });
 
@@ -177,6 +194,14 @@ describe('PostsService', () => {
       providers: [
         PostsService,
         {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) =>
+              fn({}),
+            ),
+          },
+        },
+        {
           provide: PostsRepository,
           useValue: {
             findAllByProjectId: jest.fn(),
@@ -194,6 +219,10 @@ describe('PostsService', () => {
           provide: UsersRepository,
           useValue: {
             getStorageCounts: jest.fn().mockResolvedValue({
+              storageImageCount: 0,
+              storageVideoCount: 0,
+            }),
+            getStorageCountsForUpdate: jest.fn().mockResolvedValue({
               storageImageCount: 0,
               storageVideoCount: 0,
             }),
@@ -227,7 +256,12 @@ describe('PostsService', () => {
 
     expect(r2.uploadFromUrl).toHaveBeenCalled();
     expect(result.imageUrls).toContain('https://r2.example/img.webp');
-    expect(usersRepo.addStorageMedia).toHaveBeenCalledWith('u1', 1, 0);
+    expect(usersRepo.addStorageMedia).toHaveBeenCalledWith(
+      'u1',
+      1,
+      0,
+      expect.anything(),
+    );
   });
 
   it('creates a post with videoUrls', async () => {
@@ -251,6 +285,14 @@ describe('PostsService', () => {
       providers: [
         PostsService,
         {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) =>
+              fn({}),
+            ),
+          },
+        },
+        {
           provide: PostsRepository,
           useValue: {
             findAllByProjectId: jest.fn(),
@@ -268,6 +310,10 @@ describe('PostsService', () => {
           provide: UsersRepository,
           useValue: {
             getStorageCounts: jest.fn().mockResolvedValue({
+              storageImageCount: 0,
+              storageVideoCount: 0,
+            }),
+            getStorageCountsForUpdate: jest.fn().mockResolvedValue({
               storageImageCount: 0,
               storageVideoCount: 0,
             }),
@@ -369,11 +415,23 @@ describe('PostsService', () => {
         storageImageCount: 20,
         storageVideoCount: 0,
       }),
+      getStorageCountsForUpdate: jest.fn().mockResolvedValue({
+        storageImageCount: 20,
+        storageVideoCount: 0,
+      }),
       addStorageMedia: jest.fn(),
     };
     const module = await Test.createTestingModule({
       providers: [
         PostsService,
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) =>
+              fn({}),
+            ),
+          },
+        },
         {
           provide: PostsRepository,
           useValue: {
@@ -421,11 +479,23 @@ describe('PostsService', () => {
         storageImageCount: 0,
         storageVideoCount: 20,
       }),
+      getStorageCountsForUpdate: jest.fn().mockResolvedValue({
+        storageImageCount: 0,
+        storageVideoCount: 20,
+      }),
       addStorageMedia: jest.fn(),
     };
     const module = await Test.createTestingModule({
       providers: [
         PostsService,
+        {
+          provide: PrismaService,
+          useValue: {
+            $transaction: jest.fn((fn: (tx: unknown) => Promise<unknown>) =>
+              fn({}),
+            ),
+          },
+        },
         {
           provide: PostsRepository,
           useValue: {

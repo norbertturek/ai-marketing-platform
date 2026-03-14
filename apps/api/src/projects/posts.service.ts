@@ -3,6 +3,8 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import type { TransactionClient } from '../auth/users.repository';
+import { PrismaService } from '../prisma/prisma.service';
 import { ProjectsRepository } from './projects.repository';
 import { PostsRepository } from './posts.repository';
 import type { PostResponse } from './posts.types';
@@ -27,6 +29,7 @@ function parseJsonArray(raw: string | null): string[] {
 @Injectable()
 export class PostsService {
   constructor(
+    private readonly prisma: PrismaService,
     private readonly postsRepository: PostsRepository,
     private readonly projectsRepository: ProjectsRepository,
     private readonly r2: R2Service,
@@ -82,18 +85,6 @@ export class PostsService {
 
     const newImageCount = data.imageUrls?.length ?? 0;
     const newVideoCount = data.videoUrls?.length ?? 0;
-    if (newImageCount > 0 || newVideoCount > 0) {
-      const { storageImageCount, storageVideoCount } =
-        await this.usersRepository.getStorageCounts(userId);
-      if (
-        storageImageCount + newImageCount > MAX_STORAGE_IMAGES_PER_USER ||
-        storageVideoCount + newVideoCount > MAX_STORAGE_VIDEOS_PER_USER
-      ) {
-        throw new ForbiddenException(
-          `Storage limit exceeded. Maximum ${MAX_STORAGE_IMAGES_PER_USER} images and ${MAX_STORAGE_VIDEOS_PER_USER} videos per user.`,
-        );
-      }
-    }
 
     const imageUrls = await this.copyMediaToR2(
       data.imageUrls,
@@ -108,22 +99,44 @@ export class PostsService {
       'video',
     );
 
-    const updated = await this.postsRepository.update(post.id, {
-      content: data.content,
-      imageUrls:
-        imageUrls !== undefined ? JSON.stringify(imageUrls) : undefined,
-      videoUrls:
-        videoUrls !== undefined ? JSON.stringify(videoUrls) : undefined,
-      platform: data.platform,
-      status: 'draft',
-    });
-    if (newImageCount > 0 || newVideoCount > 0) {
-      await this.usersRepository.addStorageMedia(
-        userId,
-        newImageCount,
-        newVideoCount,
-      );
-    }
+    const updated = await this.prisma.$transaction(
+      async (tx: TransactionClient) => {
+        if (newImageCount > 0 || newVideoCount > 0) {
+          const { storageImageCount, storageVideoCount } =
+            await this.usersRepository.getStorageCountsForUpdate(userId, tx);
+          if (
+            storageImageCount + newImageCount > MAX_STORAGE_IMAGES_PER_USER ||
+            storageVideoCount + newVideoCount > MAX_STORAGE_VIDEOS_PER_USER
+          ) {
+            throw new ForbiddenException(
+              `Storage limit exceeded. Maximum ${MAX_STORAGE_IMAGES_PER_USER} images and ${MAX_STORAGE_VIDEOS_PER_USER} videos per user.`,
+            );
+          }
+        }
+        const updatedPost = await this.postsRepository.update(
+          post.id,
+          {
+            content: data.content,
+            imageUrls:
+              imageUrls !== undefined ? JSON.stringify(imageUrls) : undefined,
+            videoUrls:
+              videoUrls !== undefined ? JSON.stringify(videoUrls) : undefined,
+            platform: data.platform,
+            status: 'draft',
+          },
+          tx,
+        );
+        if (newImageCount > 0 || newVideoCount > 0) {
+          await this.usersRepository.addStorageMedia(
+            userId,
+            newImageCount,
+            newVideoCount,
+            tx,
+          );
+        }
+        return updatedPost;
+      },
+    );
     return this.toResponse(updated);
   }
 
@@ -187,19 +200,6 @@ export class PostsService {
     const imageDelta = newImageCount - oldImageCount;
     const videoDelta = newVideoCount - oldVideoCount;
 
-    if (imageDelta > 0 || videoDelta > 0) {
-      const { storageImageCount, storageVideoCount } =
-        await this.usersRepository.getStorageCounts(userId);
-      if (
-        storageImageCount + imageDelta > MAX_STORAGE_IMAGES_PER_USER ||
-        storageVideoCount + videoDelta > MAX_STORAGE_VIDEOS_PER_USER
-      ) {
-        throw new ForbiddenException(
-          `Storage limit exceeded. Maximum ${MAX_STORAGE_IMAGES_PER_USER} images and ${MAX_STORAGE_VIDEOS_PER_USER} videos per user.`,
-        );
-      }
-    }
-
     const imageUrls = await this.copyMediaToR2(
       data.imageUrls,
       projectId,
@@ -213,22 +213,44 @@ export class PostsService {
       'video',
     );
 
-    const updated = await this.postsRepository.update(postId, {
-      content: data.content,
-      imageUrls:
-        imageUrls !== undefined ? JSON.stringify(imageUrls) : undefined,
-      videoUrls:
-        videoUrls !== undefined ? JSON.stringify(videoUrls) : undefined,
-      platform: data.platform,
-      status: data.status,
-    });
-    if (imageDelta !== 0 || videoDelta !== 0) {
-      await this.usersRepository.addStorageMedia(
-        userId,
-        imageDelta,
-        videoDelta,
-      );
-    }
+    const updated = await this.prisma.$transaction(
+      async (tx: TransactionClient) => {
+        if (imageDelta > 0 || videoDelta > 0) {
+          const { storageImageCount, storageVideoCount } =
+            await this.usersRepository.getStorageCountsForUpdate(userId, tx);
+          if (
+            storageImageCount + imageDelta > MAX_STORAGE_IMAGES_PER_USER ||
+            storageVideoCount + videoDelta > MAX_STORAGE_VIDEOS_PER_USER
+          ) {
+            throw new ForbiddenException(
+              `Storage limit exceeded. Maximum ${MAX_STORAGE_IMAGES_PER_USER} images and ${MAX_STORAGE_VIDEOS_PER_USER} videos per user.`,
+            );
+          }
+        }
+        const updatedPost = await this.postsRepository.update(
+          postId,
+          {
+            content: data.content,
+            imageUrls:
+              imageUrls !== undefined ? JSON.stringify(imageUrls) : undefined,
+            videoUrls:
+              videoUrls !== undefined ? JSON.stringify(videoUrls) : undefined,
+            platform: data.platform,
+            status: data.status,
+          },
+          tx,
+        );
+        if (imageDelta !== 0 || videoDelta !== 0) {
+          await this.usersRepository.addStorageMedia(
+            userId,
+            imageDelta,
+            videoDelta,
+            tx,
+          );
+        }
+        return updatedPost;
+      },
+    );
     return this.toResponse(updated);
   }
 
