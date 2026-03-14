@@ -14,15 +14,17 @@ datasource db {
 }
 
 model User {
-  id               String        @id @default(cuid())
-  email            String        @unique
-  passwordHash     String
-  refreshTokenHash String?
-  credits          Int           @default(500)
-  createdAt        DateTime      @default(now())
-  updatedAt        DateTime      @updatedAt
-  projects         Project[]
-  creditUsages     CreditUsage[]
+  id                 String        @id @default(cuid())
+  email              String        @unique
+  passwordHash       String
+  refreshTokenHash   String?
+  credits            Int           @default(500)
+  storageImageCount  Int           @default(0) /// Max 20 per user
+  storageVideoCount  Int           @default(0) /// Max 20 per user
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  projects           Project[]
+  creditUsages       CreditUsage[]
 }
 
 model CreditUsage {

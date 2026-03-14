@@ -11,6 +11,6 @@ import { UsersRepository } from './users.repository';
   imports: [PrismaModule, PassportModule, JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthService, UsersRepository, JwtAccessStrategy],
-  exports: [AuthService],
+  exports: [AuthService, UsersRepository],
 })
 export class AuthModule {}

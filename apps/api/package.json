@@ -11,6 +11,7 @@
     "dev": "nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "add-credits": "ts-node -r tsconfig-paths/register scripts/add-credits.ts",
+    "r2:test-upload": "ts-node -r tsconfig-paths/register scripts/test-r2-upload.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",

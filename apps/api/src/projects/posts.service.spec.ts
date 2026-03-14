@@ -1,10 +1,11 @@
-import { NotFoundException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import type { ProjectWithCount } from './projects.repository';
 import { ProjectsRepository } from './projects.repository';
 import { PostsRepository } from './posts.repository';
 import { PostsService } from './posts.service';
 import { R2Service } from '../storage/r2.service';
+import { UsersRepository } from '../auth/users.repository';
 
 const makeMockProject = (): ProjectWithCount =>
   ({
@@ -59,6 +60,16 @@ describe('PostsService', () => {
           useValue: {
             upload: jest.fn().mockResolvedValue(null),
             uploadFromUrl: jest.fn((url: string) => Promise.resolve(url)),
+          },
+        },
+        {
+          provide: UsersRepository,
+          useValue: {
+            getStorageCounts: jest.fn().mockResolvedValue({
+              storageImageCount: 0,
+              storageVideoCount: 0,
+            }),
+            addStorageMedia: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],
@@ -179,12 +190,23 @@ describe('PostsService', () => {
           useValue: { findByIdForUser: jest.fn() },
         },
         { provide: R2Service, useValue: r2 },
+        {
+          provide: UsersRepository,
+          useValue: {
+            getStorageCounts: jest.fn().mockResolvedValue({
+              storageImageCount: 0,
+              storageVideoCount: 0,
+            }),
+            addStorageMedia: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 
     const svc = module.get(PostsService);
     const repo = module.get(PostsRepository);
     const projRepo = module.get(ProjectsRepository);
+    const usersRepo = module.get(UsersRepository);
 
     (projRepo.findByIdForUser as jest.Mock).mockResolvedValue(
       makeMockProject(),
@@ -205,6 +227,7 @@ describe('PostsService', () => {
 
     expect(r2.uploadFromUrl).toHaveBeenCalled();
     expect(result.imageUrls).toContain('https://r2.example/img.webp');
+    expect(usersRepo.addStorageMedia).toHaveBeenCalledWith('u1', 1, 0);
   });
 
   it('creates a post with videoUrls', async () => {
@@ -241,6 +264,16 @@ describe('PostsService', () => {
           useValue: { findByIdForUser: jest.fn() },
         },
         { provide: R2Service, useValue: r2 },
+        {
+          provide: UsersRepository,
+          useValue: {
+            getStorageCounts: jest.fn().mockResolvedValue({
+              storageImageCount: 0,
+              storageVideoCount: 0,
+            }),
+            addStorageMedia: jest.fn().mockResolvedValue(undefined),
+          },
+        },
       ],
     }).compile();
 
@@ -328,5 +361,108 @@ describe('PostsService', () => {
 
     expect(postsRepo.update).toHaveBeenCalled();
     expect(result.content).toBe('New copy');
+  });
+
+  it('throws ForbiddenException when create would exceed image limit', async () => {
+    const usersRepo = {
+      getStorageCounts: jest.fn().mockResolvedValue({
+        storageImageCount: 20,
+        storageVideoCount: 0,
+      }),
+      addStorageMedia: jest.fn(),
+    };
+    const module = await Test.createTestingModule({
+      providers: [
+        PostsService,
+        {
+          provide: PostsRepository,
+          useValue: {
+            findAllByProjectId: jest.fn(),
+            create: jest.fn(),
+            findByIdForUser: jest.fn(),
+            update: jest.fn(),
+          },
+        },
+        { provide: ProjectsRepository, useValue: { findByIdForUser: jest.fn() } },
+        {
+          provide: R2Service,
+          useValue: {
+            upload: jest.fn(),
+            uploadFromUrl: jest.fn(),
+          },
+        },
+        { provide: UsersRepository, useValue: usersRepo },
+      ],
+    }).compile();
+    const svc = module.get(PostsService);
+    const projRepo = module.get(ProjectsRepository);
+    const repo = module.get(PostsRepository);
+
+    (projRepo.findByIdForUser as jest.Mock).mockResolvedValue(
+      makeMockProject(),
+    );
+    (repo.create as jest.Mock).mockResolvedValue(makePost());
+
+    await expect(
+      svc.create('proj_1', 'u1', {
+        imageUrls: ['https://example.com/one.webp'],
+      }),
+    ).rejects.toThrow(ForbiddenException);
+
+    expect(usersRepo.addStorageMedia).not.toHaveBeenCalled();
+  });
+
+  it('throws ForbiddenException when update would exceed video limit', async () => {
+    const usersRepo = {
+      getStorageCounts: jest.fn().mockResolvedValue({
+        storageImageCount: 0,
+        storageVideoCount: 20,
+      }),
+      addStorageMedia: jest.fn(),
+    };
+    const module = await Test.createTestingModule({
+      providers: [
+        PostsService,
+        {
+          provide: PostsRepository,
+          useValue: {
+            findAllByProjectId: jest.fn(),
+            create: jest.fn(),
+            findByIdForUser: jest.fn(),
+            update: jest.fn(),
+          },
+        },
+        { provide: ProjectsRepository, useValue: { findByIdForUser: jest.fn() } },
+        {
+          provide: R2Service,
+          useValue: {
+            upload: jest.fn(),
+            uploadFromUrl: jest.fn((url: string) => Promise.resolve(url)),
+          },
+        },
+        { provide: UsersRepository, useValue: usersRepo },
+      ],
+    }).compile();
+    const svc = module.get(PostsService);
+    const projRepo = module.get(ProjectsRepository);
+    const repo = module.get(PostsRepository);
+
+    (projRepo.findByIdForUser as jest.Mock).mockResolvedValue(
+      makeMockProject(),
+    );
+    (repo.findByIdForUser as jest.Mock).mockResolvedValue({
+      ...makePost(),
+      imageUrls: '[]',
+      videoUrls: '[]',
+    });
+    (repo.update as jest.Mock).mockResolvedValue(makePost());
+
+    await expect(
+      svc.update('proj_1', 'post_1', 'u1', {
+        videoUrls: ['https://example.com/extra.mp4'],
+      }),
+    ).rejects.toThrow(ForbiddenException);
+
+    expect(usersRepo.addStorageMedia).not.toHaveBeenCalled();
   });
 });

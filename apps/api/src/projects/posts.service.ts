@@ -1,8 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { ProjectsRepository } from './projects.repository';
 import { PostsRepository } from './posts.repository';
 import type { PostResponse } from './posts.types';
 import { R2Service } from '../storage/r2.service';
+import { UsersRepository } from '../auth/users.repository';
+
+const MAX_STORAGE_IMAGES_PER_USER = 20;
+const MAX_STORAGE_VIDEOS_PER_USER = 20;
 
 function parseJsonArray(raw: string | null): string[] {
   if (!raw) return [];
@@ -22,6 +30,7 @@ export class PostsService {
     private readonly postsRepository: PostsRepository,
     private readonly projectsRepository: ProjectsRepository,
     private readonly r2: R2Service,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   async findAllByProjectId(
@@ -71,6 +80,21 @@ export class PostsService {
       return this.toResponse(post);
     }
 
+    const newImageCount = data.imageUrls?.length ?? 0;
+    const newVideoCount = data.videoUrls?.length ?? 0;
+    if (newImageCount > 0 || newVideoCount > 0) {
+      const { storageImageCount, storageVideoCount } =
+        await this.usersRepository.getStorageCounts(userId);
+      if (
+        storageImageCount + newImageCount > MAX_STORAGE_IMAGES_PER_USER ||
+        storageVideoCount + newVideoCount > MAX_STORAGE_VIDEOS_PER_USER
+      ) {
+        throw new ForbiddenException(
+          `Storage limit exceeded. Maximum ${MAX_STORAGE_IMAGES_PER_USER} images and ${MAX_STORAGE_VIDEOS_PER_USER} videos per user.`,
+        );
+      }
+    }
+
     const imageUrls = await this.copyMediaToR2(
       data.imageUrls,
       projectId,
@@ -93,6 +117,13 @@ export class PostsService {
       platform: data.platform,
       status: 'draft',
     });
+    if (newImageCount > 0 || newVideoCount > 0) {
+      await this.usersRepository.addStorageMedia(
+        userId,
+        newImageCount,
+        newVideoCount,
+      );
+    }
     return this.toResponse(updated);
   }
 
@@ -147,6 +178,28 @@ export class PostsService {
       throw new NotFoundException('Post not found');
     }
 
+    const oldImageCount = parseJsonArray(post.imageUrls).length;
+    const oldVideoCount = parseJsonArray(post.videoUrls).length;
+    const newImageCount =
+      data.imageUrls !== undefined ? data.imageUrls.length : oldImageCount;
+    const newVideoCount =
+      data.videoUrls !== undefined ? data.videoUrls.length : oldVideoCount;
+    const imageDelta = newImageCount - oldImageCount;
+    const videoDelta = newVideoCount - oldVideoCount;
+
+    if (imageDelta > 0 || videoDelta > 0) {
+      const { storageImageCount, storageVideoCount } =
+        await this.usersRepository.getStorageCounts(userId);
+      if (
+        storageImageCount + imageDelta > MAX_STORAGE_IMAGES_PER_USER ||
+        storageVideoCount + videoDelta > MAX_STORAGE_VIDEOS_PER_USER
+      ) {
+        throw new ForbiddenException(
+          `Storage limit exceeded. Maximum ${MAX_STORAGE_IMAGES_PER_USER} images and ${MAX_STORAGE_VIDEOS_PER_USER} videos per user.`,
+        );
+      }
+    }
+
     const imageUrls = await this.copyMediaToR2(
       data.imageUrls,
       projectId,
@@ -169,6 +222,9 @@ export class PostsService {
       platform: data.platform,
       status: data.status,
     });
+    if (imageDelta !== 0 || videoDelta !== 0) {
+      await this.usersRepository.addStorageMedia(userId, imageDelta, videoDelta);
+    }
     return this.toResponse(updated);
   }
 

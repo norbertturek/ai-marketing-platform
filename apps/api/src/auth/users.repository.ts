@@ -42,4 +42,45 @@ export class UsersRepository {
       data: { refreshTokenHash: null },
     });
   }
+
+  getStorageCounts(userId: string): Promise<{
+    storageImageCount: number;
+    storageVideoCount: number;
+  }> {
+    return this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+      select: { storageImageCount: true, storageVideoCount: true },
+    });
+  }
+
+  addStorageMedia(
+    userId: string,
+    imageDelta: number,
+    videoDelta: number,
+  ): Promise<void> {
+    return this.prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUniqueOrThrow({
+        where: { id: userId },
+        select: {
+          storageImageCount: true,
+          storageVideoCount: true,
+        },
+      });
+      const newImageCount = Math.max(
+        0,
+        user.storageImageCount + imageDelta,
+      );
+      const newVideoCount = Math.max(
+        0,
+        user.storageVideoCount + videoDelta,
+      );
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          storageImageCount: newImageCount,
+          storageVideoCount: newVideoCount,
+        },
+      });
+    });
+  }
 }

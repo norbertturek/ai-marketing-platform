@@ -1,5 +1,5 @@
 {
-  "name": "ai-marketing-platform",
+  "name": "ai-marketing-content-platform",
   "private": true,
   "scripts": {
     "build": "turbo run build",
@@ -12,8 +12,8 @@
     "check-types": "turbo run check-types",
     "docker:up": "docker compose up --build",
     "docker:down": "docker compose down",
-    "r2:public-url": "wrangler r2 bucket dev-url get ai-marketing-platform",
-    "r2:public-url:enable": "wrangler r2 bucket dev-url enable ai-marketing-platform",
+    "r2:public-url": "wrangler r2 bucket dev-url get ai-marketing-content-platform",
+    "r2:public-url:enable": "wrangler r2 bucket dev-url enable ai-marketing-content-platform",
     "prepare": "husky"
   },
   "devDependencies": {
