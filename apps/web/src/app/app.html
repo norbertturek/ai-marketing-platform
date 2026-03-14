@@ -1,16 +1,19 @@
 <div class="dark min-h-screen bg-[#0a0a0a] text-white">
   <header class="sticky top-0 z-10 border-b border-zinc-800/50 bg-[#0a0a0a] backdrop-blur-sm">
-    <div class="container mx-auto flex h-14 flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6">
+    <div class="mx-auto flex h-14 w-full max-w-[1400px] flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-6">
       <a
         [routerLink]="isAuthenticated() ? '/projects' : '/signin'"
         class="flex items-center gap-3 text-xs font-medium text-white md:text-sm"
+        aria-label="Social Media Creator – home"
       >
-        <span aria-hidden="true" class="inline-flex size-5 items-center justify-center md:size-6">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936a2 2 0 0 0 1.437-2.999l-.976-2.434a.5.5 0 0 1 .59-.694l8.124 1.73a2 2 0 0 0 1.435-.999l1.42-2.9a.5.5 0 0 1 .628-.223L22 5.73a.5.5 0 0 1 .234.798l-3.7 4.02a2 2 0 0 0-.3 2.285l2.098 4.667a.5.5 0 0 1-.578.684l-5.485-1.897a2 2 0 0 0-1.378.052l-3.124 1.375a.5.5 0 0 1-.654-.466l-.267-4.714Z" />
-          </svg>
-        </span>
-        AI Marketing Platform
+        <img
+          src="logo.png"
+          alt=""
+          class="h-10 w-10 object-contain md:h-12 md:w-12"
+          width="48"
+          height="48"
+        />
+        <span class="hidden sm:inline">Social Media Creator</span>
       </a>
 
       <nav class="flex flex-shrink-0 items-center gap-2">

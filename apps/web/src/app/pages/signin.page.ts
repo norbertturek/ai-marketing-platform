@@ -26,12 +26,13 @@ import { AuthStoreService } from '../core/auth/auth-store.service';
       <div class="w-full max-w-md px-4">
         <!-- Logo / header -->
         <div class="text-center mb-6 md:mb-8">
-          <div
-            class="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-zinc-700 bg-zinc-900 shadow-sm mb-4 md:mb-6"
-            aria-hidden="true"
-          >
-            <span class="text-sm font-semibold tracking-tight">AI</span>
-          </div>
+          <img
+            src="logo.png"
+            alt="Social Media Creator"
+            class="mx-auto h-14 w-14 object-contain mb-4 md:mb-6"
+            width="56"
+            height="56"
+          />
           <h1 class="text-xl md:text-2xl font-medium text-white mb-2">Welcome back</h1>
           <p class="text-xs md:text-sm text-zinc-500">Sign in to access your AI marketing workspace.</p>
         </div>
